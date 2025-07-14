@@ -3,7 +3,10 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class EnemyAI : MonoBehaviour
 {
-    // Public variables to tweak the AI's behavior.
+    // --- Health Properties ---
+    public float HP = 100f;
+
+    // --- AI Properties ---
     public float power = 8f;
     public Rigidbody2D rb;
 
@@ -30,9 +33,47 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    // --- Health Logic ---
+
+    // A public function that other objects can call to deal damage to this enemy.
+    public void TakeDamage(float damageAmount)
+    {
+        // Subtract the damage amount from the current HP.
+        HP -= damageAmount;
+
+        // Print the remaining HP to the console for debugging.
+        Debug.Log(gameObject.name + " took " + damageAmount + " damage, remaining HP: " + HP);
+
+        // Check if the enemy's health has dropped to 0 or below.
+        if (HP <= 0)
+        {
+            // If health is gone, call the Die() function.
+            Die();
+        }
+    }
+
+    // This function handles what happens when the enemy dies.
+    private void Die()
+    {
+        // Print a death message to the console for debugging.
+        Debug.Log(gameObject.name + " has been defeated!");
+
+        // Destroy the GameObject this script is attached to, removing it from the scene.
+        Destroy(gameObject);
+    }
+
+    // --- AI Logic ---
+
     // This function is called by the GameManager.
     public void TakeTurn()
     {
+        // Safety Check: Do not act if this coin is already moving.
+        if (rb.linearVelocity.magnitude > 0.1f)
+        {
+            Debug.LogWarning(gameObject.name + " tried to take its turn but was already moving.");
+            return; // Exit the function early.
+        }
+
         if (playerTransform == null) return;
 
         // Calculate the direction from the enemy to the player.
