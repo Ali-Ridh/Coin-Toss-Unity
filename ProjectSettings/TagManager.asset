@@ -5,6 +5,11 @@ TagManager:
   serializedVersion: 3
   tags:
   - EnemySmall
+  - OrderTickets
+  - OrderTicker
+  - OrderTicket
+  - Food
+  - DirtyDishes
   layers:
   - Default
   - TransparentFX
@@ -12,7 +17,7 @@ TagManager:
   - 
   - Water
   - UI
-  - 
+  - Obstacles
   - 
   - 
   - 
