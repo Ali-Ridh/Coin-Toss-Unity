@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7013805905153429639}
   - component: {fileID: 7085724345144410856}
   - component: {fileID: 6482646622419512912}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Fill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -86,7 +86,7 @@ GameObject:
   - component: {fileID: 2235264145212146136}
   - component: {fileID: 8846644265279289039}
   - component: {fileID: 4864048693828996205}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: E1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -152,7 +152,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 5
   m_Sprite: {fileID: 21300000, guid: fcca8f2af2200544280f2653754b6c98, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -179,8 +179,8 @@ MonoBehaviour:
   currentState: 0
   patience: 100
   maxPatience: 100
-  patienceBar: {fileID: 4740744976269221623}
-  orderPrefab: {fileID: 0}
+  patienceBarPrefab: {fileID: 3707590768328035922, guid: 170bae9b3af36a34ea30fe6e325abfe7, type: 3}
+  orderPrefab: {fileID: 6455701419199345447, guid: 204056b47c16a0044a0dc19fd72ea4ea, type: 3}
   seatedTable: {fileID: 0}
 --- !u!1 &7155873093295453929
 GameObject:
@@ -191,7 +191,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6437988202122797245}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Handle Slide Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -228,7 +228,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3071377579095738721}
   - component: {fileID: 4740744976269221623}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Slider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -317,7 +317,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3352802426571129147}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Fill Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -355,7 +355,7 @@ GameObject:
   - component: {fileID: 1210948706930182822}
   - component: {fileID: 7517148237072412884}
   - component: {fileID: 1959942945660959619}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -431,7 +431,7 @@ GameObject:
   - component: {fileID: 3637069013198866508}
   - component: {fileID: 7564880556348712351}
   - component: {fileID: 6979425774342900860}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -532,7 +532,7 @@ GameObject:
   - component: {fileID: 7142849881640451662}
   - component: {fileID: 119979713477392717}
   - component: {fileID: 996980418550685522}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Handle
   m_TagString: Untagged
   m_Icon: {fileID: 0}

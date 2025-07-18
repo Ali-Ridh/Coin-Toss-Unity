@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.UI; // For Slider
+using UnityEngine.UI;
 
 public class CustomerController : MonoBehaviour
 {
@@ -8,20 +8,41 @@ public class CustomerController : MonoBehaviour
 
     public float patience = 100f;
     public float maxPatience = 100f;
-    public Slider patienceBar; // Assign a UI Slider in the Inspector
 
-    public GameObject orderPrefab; // Prefab representing the food this customer wants
+    // --- PERUBAHAN ---
+    [Header("UI Settings")]
+    public GameObject patienceBarPrefab; // Assign prefab Slider di sini
+    private Slider patienceBarInstance; // Referensi ke slider yang dibuat
+
+    public GameObject orderPrefab;
     public Table seatedTable;
+
+    void Start()
+    {
+        // Cari Canvas utama di scene
+        Canvas mainCanvas = FindObjectOfType<Canvas>();
+        if (mainCanvas != null && patienceBarPrefab != null)
+        {
+            // Buat instance dari prefab slider sebagai child dari canvas utama
+            GameObject sliderObj = Instantiate(patienceBarPrefab, mainCanvas.transform);
+
+            // Dapatkan komponen Slider dan UIFollowTarget dari instance tersebut
+            patienceBarInstance = sliderObj.GetComponent<Slider>();
+            UIFollowTarget followScript = sliderObj.GetComponent<UIFollowTarget>();
+
+            // Beritahu script follow untuk mengikuti customer ini
+            followScript.targetToFollow = this.transform;
+        }
+    }
 
     void Update()
     {
-        // Decrease patience over time
         if (currentState != State.Eating && currentState != State.Leaving)
         {
-            patience -= Time.deltaTime * 5; // Lose 5 patience per second
-            if (patienceBar != null)
+            patience -= Time.deltaTime * 5;
+            if (patienceBarInstance != null)
             {
-                patienceBar.value = patience / maxPatience;
+                patienceBarInstance.value = patience / maxPatience;
             }
 
             if (patience <= 0)
@@ -46,8 +67,9 @@ public class CustomerController : MonoBehaviour
     public void OnFoodDelivered()
     {
         currentState = State.Eating;
-        patience = maxPatience; // Reset patience while eating
-        Invoke(nameof(FinishEating), 5f); // Eat for 5 seconds
+        patience = maxPatience;
+        if (patienceBarInstance != null) patienceBarInstance.gameObject.SetActive(false); // Sembunyikan bar saat makan
+        Invoke(nameof(FinishEating), 5f);
     }
 
     void FinishEating()
@@ -55,7 +77,7 @@ public class CustomerController : MonoBehaviour
         currentState = State.Leaving;
         seatedTable.OnCustomerLeave();
         DinerManager.Instance.AddScore(25);
-        Destroy(gameObject, 1f); // Disappear after 1 second
+        Destroy(gameObject, 1f);
     }
 
     void LeaveUnhappy()
@@ -67,5 +89,14 @@ public class CustomerController : MonoBehaviour
         }
         DinerManager.Instance.AddScore(-10);
         Destroy(gameObject);
+    }
+
+    // Pastikan slider juga hancur saat customer hancur
+    void OnDestroy()
+    {
+        if (patienceBarInstance != null)
+        {
+            Destroy(patienceBarInstance.gameObject);
+        }
     }
 }

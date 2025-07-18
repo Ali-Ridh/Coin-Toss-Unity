@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class Table : MonoBehaviour
 {
+
+
     public Transform customerSeat;
     public GameObject dirtyDishesPrefab; // Prefab for the dirty dishes visual
 
@@ -40,3 +42,5 @@ public class Table : MonoBehaviour
         }
     }
 }
+
+

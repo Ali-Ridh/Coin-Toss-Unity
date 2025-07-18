@@ -28,7 +28,7 @@ public class Pathfinding : MonoBehaviour
     public static Pathfinding Instance;
 
     [Header("Grid Settings")]
-    public LayerMask unwalkableMask; // Layer for obstacles like walls and tables
+    public LayerMask unwalkableMask;
     public Vector2 gridWorldSize;
     public float nodeRadius;
 
@@ -61,12 +61,48 @@ public class Pathfinding : MonoBehaviour
         }
     }
 
+    // --- NEW FUNCTION ---
+    // Finds the closest walkable node to a given start node using a breadth-first search.
+    public Node FindNearestWalkableNode(Node startNode)
+    {
+        if (startNode.isWalkable)
+        {
+            return startNode;
+        }
+
+        Queue<Node> queue = new Queue<Node>();
+        HashSet<Node> searchedNodes = new HashSet<Node>();
+
+        queue.Enqueue(startNode);
+        searchedNodes.Add(startNode);
+
+        while (queue.Count > 0)
+        {
+            Node currentNode = queue.Dequeue();
+            foreach (Node neighbour in GetNeighbours(currentNode))
+            {
+                if (searchedNodes.Contains(neighbour)) continue;
+                searchedNodes.Add(neighbour);
+
+                if (neighbour.isWalkable)
+                {
+                    return neighbour; // Found the closest walkable node
+                }
+                else
+                {
+                    queue.Enqueue(neighbour);
+                }
+            }
+        }
+        return null; // Should not happen if there's at least one walkable tile
+    }
+
     public List<Vector3> FindPath(Vector3 startPos, Vector3 targetPos)
     {
         Node startNode = GetNodeFromWorldPoint(startPos);
         Node targetNode = GetNodeFromWorldPoint(targetPos);
 
-        if (targetNode == null || !targetNode.isWalkable) return null; // Can't pathfind to an unwalkable node
+        if (targetNode == null || !targetNode.isWalkable) return null;
 
         List<Node> openSet = new List<Node>();
         HashSet<Node> closedSet = new HashSet<Node>();
@@ -93,10 +129,7 @@ public class Pathfinding : MonoBehaviour
 
             foreach (Node neighbour in GetNeighbours(currentNode))
             {
-                if (!neighbour.isWalkable || closedSet.Contains(neighbour))
-                {
-                    continue;
-                }
+                if (!neighbour.isWalkable || closedSet.Contains(neighbour)) continue;
 
                 int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
                 if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
@@ -110,7 +143,7 @@ public class Pathfinding : MonoBehaviour
                 }
             }
         }
-        return null; // No path found
+        return null;
     }
 
     List<Vector3> RetracePath(Node startNode, Node endNode)
@@ -124,9 +157,9 @@ public class Pathfinding : MonoBehaviour
             currentNode = currentNode.parent;
         }
         path.Reverse();
-        
+
         List<Vector3> waypoints = new List<Vector3>();
-        foreach(Node n in path)
+        foreach (Node n in path)
         {
             waypoints.Add(n.worldPosition);
         }
@@ -141,7 +174,6 @@ public class Pathfinding : MonoBehaviour
             for (int y = -1; y <= 1; y++)
             {
                 if (x == 0 && y == 0) continue;
-                // --- THIS IS THE KEY CHANGE FOR NO DIAGONALS ---
                 if (Mathf.Abs(x) == 1 && Mathf.Abs(y) == 1) continue;
 
                 int checkX = node.gridX + x;
@@ -160,7 +192,7 @@ public class Pathfinding : MonoBehaviour
     {
         int dstX = Mathf.Abs(nodeA.gridX - nodeB.gridX);
         int dstY = Mathf.Abs(nodeA.gridY - nodeB.gridY);
-        return 10 * (dstX + dstY); // Manhattan distance
+        return 10 * (dstX + dstY);
     }
 
     public Node GetNodeFromWorldPoint(Vector3 worldPosition)
@@ -175,7 +207,6 @@ public class Pathfinding : MonoBehaviour
         return grid[x, y];
     }
 
-    // This helps visualize the grid in the Scene view for easy debugging.
     void OnDrawGizmos()
     {
         Gizmos.DrawWireCube(transform.position, new Vector3(gridWorldSize.x, gridWorldSize.y, 1));
