@@ -7,6 +7,10 @@ public class DinerManager : MonoBehaviour
 {
     public static DinerManager Instance;
 
+    [Header("Game Settings")]
+    [Tooltip("The maximum number of customers allowed to wait in the queue at one time.")]
+    public int maxQueueSize = 5;
+
     [Header("Game Objects")]
     public PlayerController player;
     public GameObject customerPrefab;
@@ -22,8 +26,9 @@ public class DinerManager : MonoBehaviour
 
     private int score = 0;
     private List<CustomerController> customerQueue = new List<CustomerController>();
+    // The list of tables is now automatically populated from the scene.
     private List<Table> tables = new List<Table>();
-
+    
     public GameObject orderTicketPrefab;
     public GameObject foodPrefab;
     public GameObject dirtyDishesPrefab;
@@ -36,11 +41,15 @@ public class DinerManager : MonoBehaviour
 
     void Start()
     {
+        // Automatically find and register all tables in the scene.
+        // To change the number of tables, just add or remove them from your scene.
         tables.AddRange(FindObjectsOfType<Table>());
+        Debug.Log("Found and registered " + tables.Count + " tables.");
+
         UpdateScoreUI();
         InvokeRepeating(nameof(SpawnCustomer), 2f, 8f);
     }
-
+    
     void Update()
     {
         customerQueue.RemoveAll(customer => customer == null);
@@ -48,15 +57,22 @@ public class DinerManager : MonoBehaviour
 
     void SpawnCustomer()
     {
+        // --- NEW --- Only spawn a customer if the queue is not full.
+        if (customerQueue.Count >= maxQueueSize)
+        {
+            Debug.Log("Queue is full. No new customer will spawn.");
+            return;
+        }
+
         GameObject newCustomerObj = Instantiate(customerPrefab, queueSpawnPoint.position, Quaternion.identity);
         customerQueue.Add(newCustomerObj.GetComponent<CustomerController>());
-        Debug.Log("A new customer has arrived in the queue.");
+        Debug.Log("A new customer has arrived in the queue. Queue size: " + customerQueue.Count);
     }
 
     public void OnStationClicked(Station station)
     {
         if (player.isMoving) return;
-
+        
         Debug.Log("Player clicked on station: " + station.name);
         Node targetNode = Pathfinding.Instance.GetNodeFromWorldPoint(station.transform.position);
         Node walkableNode = Pathfinding.Instance.FindNearestWalkableNode(targetNode);
@@ -71,7 +87,7 @@ public class DinerManager : MonoBehaviour
     public void OnTableClicked(Table table)
     {
         if (player.isMoving) return;
-
+        
         Debug.Log("Player clicked on table: " + table.name);
         Node targetNode = Pathfinding.Instance.GetNodeFromWorldPoint(table.transform.position);
         Node walkableNode = Pathfinding.Instance.FindNearestWalkableNode(targetNode);
@@ -82,7 +98,7 @@ public class DinerManager : MonoBehaviour
             StartCoroutine(PlayerMoveAndInteract(table));
         }
     }
-
+    
     private IEnumerator PlayerMoveAndInteract(Station station)
     {
         yield return new WaitUntil(() => !player.isMoving);
