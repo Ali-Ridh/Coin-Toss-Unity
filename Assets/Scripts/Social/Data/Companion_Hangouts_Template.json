@@ -1,0 +1,21 @@
+[
+  {
+    "eventID": null,
+    "requiredRank": 0,
+    "dialogue": [
+      {
+        "speakerID": null,
+        "text": null,
+        "choices": [
+          {
+            "choiceText": null,
+            "pointsValue": 0,
+            "triggersRomance": false
+          }
+        ]
+      }
+    ],
+    "basePointsAwarded": 0
+  }
+]
+
