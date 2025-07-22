@@ -72,6 +72,7 @@ mono_crash.*
 *.unitypackage
 *.unitypackage.meta
 *.app
+.github/
 
 # Crashlytics generated file
 crashlytics-build.properties
@@ -97,3 +98,9 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# Ignore user-specific files
+*.userprefs
+.github/
+.vscode/
+
