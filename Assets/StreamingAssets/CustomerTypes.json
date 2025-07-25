@@ -1,0 +1,26 @@
+[
+  {
+    "customerTypeID": "Regular",
+    "description": "A standard customer. Nothing special.",
+    "patienceMultiplier": 1.0,
+    "minOrderSize": 1,
+    "maxOrderSize": 1,
+    "spawnWeight": 70
+  },
+  {
+    "customerTypeID": "Patient",
+    "description": "Willing to wait a bit longer than most.",
+    "patienceMultiplier": 1.5,
+    "minOrderSize": 1,
+    "maxOrderSize": 1,
+    "spawnWeight": 15
+  },
+  {
+    "customerTypeID": "Demanding",
+    "description": "Impatient and orders multiple items.",
+    "patienceMultiplier": 0.75,
+    "minOrderSize": 2,
+    "maxOrderSize": 3,
+    "spawnWeight": 15
+  }
+]
