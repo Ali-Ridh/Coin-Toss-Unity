@@ -4,20 +4,20 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public Transform handSlot;
+    [Header("Movement")]
     public float speed = 5f;
-
-    public GameObject heldItem { get; private set; }
     public bool isMoving { get; private set; }
     private Coroutine movementCoroutine;
 
-    // The MoveTo function is now a public entry point that starts the pathfinding process.
+    [Header("Inventory")]
+    public int inventoryCapacity = 3;
+    
+    // The player's inventory is now a list of MenuItems
+    public List<MenuItem> inventory = new List<MenuItem>();
+
     public void MoveTo(Vector3 destination)
     {
-        // Find a path to the destination.
         List<Vector3> path = Pathfinding.Instance.FindPath(transform.position, destination);
-
-        // If a path was found, stop any current movement and start following the new path.
         if (path != null)
         {
             if (movementCoroutine != null)
@@ -28,34 +28,49 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // This coroutine moves the player along the points in the path.
     private IEnumerator FollowPath(List<Vector3> path)
     {
         isMoving = true;
         foreach (Vector3 waypoint in path)
         {
-            // Loop until the player is very close to the current waypoint.
             while (Vector3.Distance(transform.position, waypoint) > 0.01f)
             {
                 transform.position = Vector3.MoveTowards(transform.position, waypoint, speed * Time.deltaTime);
-                yield return null; // Wait for the next frame
+                yield return null;
             }
         }
         isMoving = false;
     }
 
-    public void HoldItem(GameObject itemPrefab)
+    // --- MODIFIED INVENTORY LOGIC ---
+
+    public bool CanAddItem()
     {
-        if (heldItem != null) Destroy(heldItem);
-        heldItem = Instantiate(itemPrefab, handSlot);
+        return inventory.Count < inventoryCapacity;
     }
 
-    public void ClearHand()
+    public void AddItem(MenuItem itemToAdd)
     {
-        if (heldItem != null)
+        if (CanAddItem())
         {
-            Destroy(heldItem);
-            heldItem = null;
+            inventory.Add(itemToAdd);
+            // Call the UI manager to update the display
+            InventoryUI.Instance.UpdateDisplay(inventory);
+            Debug.Log("Player picked up: " + itemToAdd.itemName);
         }
+        else
+        {
+            Debug.LogWarning("Player inventory is full! Cannot pick up " + itemToAdd.itemName);
+        }
+    }
+
+    public void RemoveItems(List<MenuItem> itemsToRemove)
+    {
+        foreach (MenuItem item in itemsToRemove)
+        {
+            inventory.Remove(item);
+        }
+        // Call the UI manager to update the display
+        InventoryUI.Instance.UpdateDisplay(inventory);
     }
 }

@@ -1,4 +1,5 @@
-// Defines the properties for a single item on your diner's menu.
+// FILE: MenuItem.cs
+// PURPOSE: Defines the properties for a single item on your diner's menu.
 using UnityEngine;
 
 [System.Serializable]
@@ -9,5 +10,8 @@ public class MenuItem
     public float cookTime;
     public string requiredStationID; // e.g., "station_grill"
     public int scoreValue;
-    // You could add a 'public Sprite icon;' here later if you load sprites dynamically
+    
+    // --- MODIFIED ---
+    // We now use a Sprite for the icon, which is better for UI.
+    public Sprite itemIcon; 
 }
