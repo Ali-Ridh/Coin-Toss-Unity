@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Linq; // Required for advanced list queries
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,7 +15,7 @@ public class CustomerController : MonoBehaviour
 
     [Header("UI Settings")]
     public GameObject patienceBarPrefab;
-    public Transform orderIconsContainer; 
+    public Transform orderIconsContainer;
     private Slider patienceBarInstance;
 
     public Table seatedTable;
@@ -36,8 +36,7 @@ public class CustomerController : MonoBehaviour
                 currentOrder.Add(availableMenuItems[Random.Range(0, availableMenuItems.Count)]);
             }
         }
-        
-        // Use FindFirstObjectByType instead of the obsolete FindObjectOfType
+
         Canvas mainCanvas = FindFirstObjectByType<Canvas>();
         if (mainCanvas != null && patienceBarPrefab != null)
         {
@@ -55,22 +54,17 @@ public class CustomerController : MonoBehaviour
 
     void DisplayOrder()
     {
-        // Clear any previous icons
         foreach (Transform child in orderIconsContainer)
         {
             Destroy(child.gameObject);
         }
 
-        // Create an icon for each item in the order
         foreach (MenuItem item in currentOrder)
         {
-            // --- THIS IS THE FIX ---
-            // We now check for itemIcon (Sprite) instead of orderIconPrefab (GameObject)
             if (item.itemIcon != null)
             {
-                // Create a new GameObject with an Image component to display the sprite
                 GameObject iconObj = new GameObject(item.itemName + " Icon");
-                iconObj.transform.SetParent(orderIconsContainer, false); // Set parent
+                iconObj.transform.SetParent(orderIconsContainer, false);
                 Image iconImage = iconObj.AddComponent<Image>();
                 iconImage.sprite = item.itemIcon;
                 iconImage.preserveAspect = true;
@@ -82,7 +76,8 @@ public class CustomerController : MonoBehaviour
     {
         if (currentState != State.Eating && currentState != State.Leaving)
         {
-            patience -= Time.deltaTime * 5;
+            // --- CHANGE: Patience now decreases more slowly. ---
+            patience -= Time.deltaTime * 2f; // Was 5f
             if (patienceBarInstance != null)
             {
                 patienceBarInstance.value = patience / maxPatience;
@@ -93,6 +88,13 @@ public class CustomerController : MonoBehaviour
                 LeaveUnhappy();
             }
         }
+    }
+
+    // --- NEW: Function to restore a bit of patience. ---
+    public void RestorePatience(float amount)
+    {
+        patience = Mathf.Min(patience + amount, maxPatience);
+        Debug.Log("Restored " + amount + " patience for " + gameObject.name);
     }
 
     public void OnSeated(Table table)
@@ -106,6 +108,8 @@ public class CustomerController : MonoBehaviour
     {
         currentState = State.WaitingForFood;
         orderIconsContainer.gameObject.SetActive(false);
+        // --- NEW: Restore patience when order is taken. ---
+        RestorePatience(15f);
     }
 
     public List<MenuItem> TryDeliverItems(List<MenuItem> playerInventory)
@@ -121,7 +125,6 @@ public class CustomerController : MonoBehaviour
                 deliveredItems.Add(matchingOrderItem);
                 tempOrder.Remove(matchingOrderItem);
                 DinerManager.Instance.AddScore(matchingOrderItem.scoreValue);
-                Debug.Log("Successfully delivered " + matchingOrderItem.itemName);
             }
         }
 
@@ -129,6 +132,9 @@ public class CustomerController : MonoBehaviour
         {
             currentOrder = tempOrder;
             DisplayOrder();
+            // --- NEW: Restore patience for a successful delivery. ---
+            RestorePatience(25f);
+
             if (currentOrder.Count == 0)
             {
                 StartEating();
@@ -148,6 +154,7 @@ public class CustomerController : MonoBehaviour
 
     void FinishEating()
     {
+        Debug.Log(gameObject.name + " finished eating and is leaving.");
         currentState = State.Leaving;
         seatedTable.OnCustomerLeave();
         DinerManager.Instance.AddScore(10);
@@ -156,6 +163,7 @@ public class CustomerController : MonoBehaviour
 
     void LeaveUnhappy()
     {
+        Debug.Log(gameObject.name + " is leaving unhappy!");
         currentState = State.Leaving;
         if (seatedTable != null)
         {

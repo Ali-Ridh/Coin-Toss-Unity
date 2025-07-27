@@ -48,7 +48,7 @@ MonoBehaviour:
   settings:
     _blur: 0
     _endAngle: 360
-    _fillColor: {r: 1, g: 0.2689655, b: 0, a: 1}
+    _fillColor: {r: 1, g: 0.2689655, b: 0, a: 0}
     _fillColor2: {r: 0.94509804, g: 0.76862746, b: 0.05882353, a: 1}
     _fillOffset: {x: 0, y: 0}
     _fillPathLoops: 0

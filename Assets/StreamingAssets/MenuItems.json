@@ -1,9 +1,9 @@
 [
   {
-    "itemName": null,
-    "itemID": null,
-    "cookTime": 0.0,
-    "requiredStationID": null,
-    "scoreValue": 0
+    "itemName": "Burger",
+    "itemID": "food_burger",
+    "cookTime": 5.0,
+    "requiredStationID": "station_grill",
+    "scoreValue": 25
   }
 ]

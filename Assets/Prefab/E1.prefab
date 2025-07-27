@@ -503,8 +503,8 @@ Transform:
   m_GameObject: {fileID: 5317406920443029089}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -28.12199, y: 1.5127568, z: 0}
-  m_LocalScale: {x: 5, y: 5, z: 5}
+  m_LocalPosition: {x: -5.467789, y: -3.2694936, z: 0}
+  m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 4924805316656723865}
@@ -580,7 +580,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentState: 0
   patienceBarPrefab: {fileID: 3707590768328035922, guid: 170bae9b3af36a34ea30fe6e325abfe7, type: 3}
-  orderIconsContainer: {fileID: 0}
+  orderIconsContainer: {fileID: 6845252899577843526}
   seatedTable: {fileID: 0}
 --- !u!1 &8821313009625494327
 GameObject:

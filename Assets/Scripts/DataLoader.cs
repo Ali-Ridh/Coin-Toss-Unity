@@ -7,7 +7,11 @@ public static class JsonHelper
 {
     public static T[] FromJson<T>(string json)
     {
-        Wrapper<T> wrapper = JsonUtility.FromJson<Wrapper<T>>(json);
+        // --- THIS IS THE FIX ---
+        // We manually add the "wrapper" around the JSON array string.
+        // This turns "[...]" into "{ "Items": [...] }", which JsonUtility can understand.
+        string newJson = "{ \"Items\": " + json + "}";
+        Wrapper<T> wrapper = JsonUtility.FromJson<Wrapper<T>>(newJson);
         return wrapper.Items;
     }
 
@@ -22,7 +26,6 @@ public class DataLoader : MonoBehaviour
 {
     public static DataLoader Instance;
 
-    // --- NEW --- This flag tells other scripts if the data is ready.
     public bool isDataLoaded { get; private set; } = false;
 
     public List<MenuItem> AllMenuItems { get; private set; }
@@ -71,7 +74,6 @@ public class DataLoader : MonoBehaviour
         LoadGossipTopic("Gossip_Topic_Template.json");
         LoadHangoutEvents("Companion_Hangouts_Template.json");
 
-        // --- NEW --- Set the flag to true after everything is loaded.
         isDataLoaded = true;
         Debug.Log("All game data loaded successfully!");
     }
