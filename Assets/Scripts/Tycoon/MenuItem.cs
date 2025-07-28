@@ -11,7 +11,9 @@ public class MenuItem
     public string requiredStationID; // e.g., "station_grill"
     public int scoreValue;
     
-    // --- MODIFIED ---
-    // We now use a Sprite for the icon, which is better for UI.
+    // --- PERUBAHAN ---
+    // Atribut ini memberitahu JsonUtility untuk mengabaikan field ini saat parsing.
+    // Kita akan mengisinya secara manual melalui kode.
+    [System.NonSerialized]
     public Sprite itemIcon; 
 }

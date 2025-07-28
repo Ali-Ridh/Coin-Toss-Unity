@@ -2,6 +2,9 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
 
+// ... (JsonHelper tetap sama) ...
+
+
 [System.Serializable]
 public static class JsonHelper
 {
@@ -25,6 +28,10 @@ public static class JsonHelper
 public class DataLoader : MonoBehaviour
 {
     public static DataLoader Instance;
+
+    // --- BARU ---
+    [Header("Asset Databases")]
+    public SpriteDatabase spriteDatabase; // Tugaskan aset SpriteDatabase Anda di sini melalui Inspector.
 
     public bool isDataLoaded { get; private set; } = false;
 
@@ -61,10 +68,29 @@ public class DataLoader : MonoBehaviour
         LoadAllGameData();
     }
 
-    private void LoadAllGameData()
+    // private void LoadAllGameData()
+    // {
+    //     Debug.Log("Starting to load all game data...");
+
+    //     AllMenuItems.AddRange(LoadJsonData<MenuItem>("MenuItems.json"));
+    //     AllUpgrades.AddRange(LoadJsonData<UpgradeData>("Upgrades.json"));
+    //     AllRankData.AddRange(LoadJsonData<RankData>("RankData.json"));
+    //     FullSchedule.AddRange(LoadJsonData<DailyScheduleEntry>("Schedule.json"));
+    //     AllCustomerTypes.AddRange(LoadJsonData<CustomerTypeData>("CustomerTypes.json"));
+
+    //     LoadGossipTopic("Gossip_Topic_Template.json");
+    //     LoadHangoutEvents("Companion_Hangouts_Template.json");
+
+    //     isDataLoaded = true;
+    //     Debug.Log("All game data loaded successfully!");
+    // }
+        private void LoadAllGameData()
     {
         Debug.Log("Starting to load all game data...");
 
+        // 1. Muat semua data dari JSON seperti biasa.
+        AllMenuItems.AddRange(LoadJsonData<MenuItem>("MenuItems.json"));
+        AllUpgrades.AddRange(LoadJsonData<UpgradeData>("Upgrades.json"));
         AllMenuItems.AddRange(LoadJsonData<MenuItem>("MenuItems.json"));
         AllUpgrades.AddRange(LoadJsonData<UpgradeData>("Upgrades.json"));
         AllRankData.AddRange(LoadJsonData<RankData>("RankData.json"));
@@ -74,14 +100,33 @@ public class DataLoader : MonoBehaviour
         LoadGossipTopic("Gossip_Topic_Template.json");
         LoadHangoutEvents("Companion_Hangouts_Template.json");
 
+        // 2. --- LANGKAH PENTING BARU ---
+        // Setelah data teks dimuat, kita sekarang menautkan aset Sprite.
+        LinkMenuItemSprites();
+
         isDataLoaded = true;
         Debug.Log("All game data loaded successfully!");
     }
+        private void LinkMenuItemSprites()
+    {
+        if (spriteDatabase == null)
+        {
+            Debug.LogError("SpriteDatabase is not assigned in the DataLoader Inspector!");
+            return;
+        }
 
+        Debug.Log("Linking menu item sprites...");
+        foreach (MenuItem item in AllMenuItems)
+        {
+            // Gunakan database untuk menemukan dan menugaskan sprite yang benar
+            // ke setiap menu item berdasarkan itemID-nya.
+            item.itemIcon = spriteDatabase.GetSpriteByID(item.itemID);
+        }
+    }
     private T[] LoadJsonData<T>(string fileName)
     {
         string path = Path.Combine(Application.streamingAssetsPath, fileName);
-        
+
         if (File.Exists(path))
         {
             string jsonContent = File.ReadAllText(path);
