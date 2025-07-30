@@ -1,0 +1,300 @@
+[
+  {
+    "nodeId": "opening_001",
+    "speaker": "Narrator",
+    "text": "The sun rises over the bustling town of Millbrook...",
+    "portrait": "",
+    "background": "town_square_dawn",
+    "nextNode": "opening_002",
+    "choices": [],
+    "actions": []
+  },
+  {
+    "nodeId": "opening_002",
+    "speaker": "Mayor Thompson",
+    "text": "Welcome, traveler! I'm Mayor Thompson. What brings you to our humble town?",
+    "portrait": "mayor_happy",
+    "background": "town_square_dawn",
+    "nextNode": "choice_001",
+    "choices": [],
+    "actions": []
+  },
+  {
+    "nodeId": "choice_001",
+    "speaker": "Narrator",
+    "text": "How do you respond to the Mayor?",
+    "portrait": "",
+    "background": "town_square_dawn",
+    "nextNode": "",
+    "choices": [
+      {
+        "text": "I'm looking for adventure!",
+        "nextNode": "adventure_path"
+      },
+      {
+        "text": "I'm seeking work opportunities.",
+        "nextNode": "work_path"
+      },
+      {
+        "text": "Just passing through, thanks.",
+        "nextNode": "passing_path"
+      }
+    ],
+    "actions": []
+  },
+  {
+    "nodeId": "adventure_path",
+    "speaker": "Mayor Thompson",
+    "text": "Adventure, you say? Well, there have been strange noises from the old forest lately...",
+    "portrait": "mayor_concerned",
+    "background": "town_square_dawn",
+    "nextNode": "adventure_choice",
+    "choices": [],
+    "actions": []
+  },
+  {
+    "nodeId": "work_path",
+    "speaker": "Mayor Thompson",
+    "text": "We could always use help around here. The harvest season is coming up soon.",
+    "portrait": "mayor_neutral",
+    "background": "town_square_dawn",
+    "nextNode": "work_choice",
+    "choices": [],
+    "actions": []
+  },
+  {
+    "nodeId": "passing_path",
+    "speaker": "Mayor Thompson",
+    "text": "Well, safe travels then. But before you go, would you like to hear about our town?",
+    "portrait": "mayor_surprised",
+    "background": "town_square_dawn",
+    "nextNode": "passing_choice",
+    "choices": [],
+    "actions": []
+  },
+  {
+    "nodeId": "adventure_choice",
+    "speaker": "Narrator",
+    "text": "Do you want to investigate the forest?",
+    "portrait": "",
+    "background": "town_square_dawn",
+    "nextNode": "",
+    "choices": [
+      {
+        "text": "Yes, tell me more about the forest.",
+        "nextNode": "forest_path"
+      },
+      {
+        "text": "I've changed my mind, I'm looking for work instead.",
+        "nextNode": "work_path"
+      }
+    ],
+    "actions": []
+  },
+  {
+    "nodeId": "work_choice",
+    "speaker": "Narrator",
+    "text": "What type of work interests you?",
+    "portrait": "",
+    "background": "town_square_dawn",
+    "nextNode": "",
+    "choices": [
+      {
+        "text": "Help with the harvest.",
+        "nextNode": "harvest_path"
+      },
+      {
+        "text": "I'm a skilled craftsman.",
+        "nextNode": "craftsman_path"
+      }
+    ],
+    "actions": []
+  },
+  {
+    "nodeId": "passing_choice",
+    "speaker": "Narrator",
+    "text": "What do you say?",
+    "portrait": "",
+    "background": "town_square_dawn",
+    "nextNode": "",
+    "choices": [
+      {
+        "text": "Yes, I'd like to hear about the town.",
+        "nextNode": "town_tour"
+      },
+      {
+        "text": "No thanks, I really must be going.",
+        "nextNode": "ending_leave"
+      }
+    ],
+    "actions": []
+  },
+  {
+    "nodeId": "forest_path",
+    "speaker": "Mayor Thompson",
+    "text": "The Whispering Woods have been home to our people for generations, but lately... strange things have been seen.",
+    "portrait": "mayor_concerned",
+    "background": "town_square_dawn",
+    "nextNode": "ending_adventure",
+    "choices": [],
+    "actions": []
+  },
+  {
+    "nodeId": "harvest_path",
+    "speaker": "Mayor Thompson",
+    "text": "Excellent! Farmer Brown could use an extra pair of hands. I'll send word to him.",
+    "portrait": "mayor_happy",
+    "background": "town_square_dawn",
+    "nextNode": "ending_work",
+    "choices": [],
+    "actions": []
+  },
+  {
+    "nodeId": "craftsman_path",
+    "speaker": "Mayor Thompson",
+    "text": "We have a blacksmith, carpenter, and tailor in town. Which trade do you know?",
+    "portrait": "mayor_neutral",
+    "background": "town_square_dawn",
+    "nextNode": "craftsman_choice",
+    "choices": [],
+    "actions": []
+  },
+  {
+    "nodeId": "town_tour",
+    "speaker": "Mayor Thompson",
+    "text": "Wonderful! Let me show you around our lovely town of Millbrook.",
+    "portrait": "mayor_happy",
+    "background": "town_square_dawn",
+    "nextNode": "ending_tour",
+    "choices": [],
+    "actions": []
+  },
+  {
+    "nodeId": "craftsman_choice",
+    "speaker": "Narrator",
+    "text": "Which trade do you practice?",
+    "portrait": "",
+    "background": "town_square_dawn",
+    "nextNode": "",
+    "choices": [
+      {
+        "text": "Blacksmithing",
+        "nextNode": "blacksmith_path"
+      },
+      {
+        "text": "Carpentry",
+        "nextNode": "carpenter_path"
+      },
+      {
+        "text": "Tailoring",
+        "nextNode": "tailor_path"
+      }
+    ],
+    "actions": []
+  },
+  {
+    "nodeId": "blacksmith_path",
+    "speaker": "Mayor Thompson",
+    "text": "Perfect! Gregor, our blacksmith, has been looking for an apprentice.",
+    "portrait": "mayor_happy",
+    "background": "town_square_dawn",
+    "nextNode": "ending_craftsman",
+    "choices": [],
+    "actions": []
+  },
+  {
+    "nodeId": "carpenter_path",
+    "speaker": "Mayor Thompson",
+    "text": "Thomas, our carpenter, always needs help with his projects.",
+    "portrait": "mayor_happy",
+    "background": "town_square_dawn",
+    "nextNode": "ending_craftsman",
+    "choices": [],
+    "actions": []
+  },
+  {
+    "nodeId": "tailor_path",
+    "speaker": "Mayor Thompson",
+    "text": "Martha, our tailor, could use assistance with her new commissions.",
+    "portrait": "mayor_happy",
+    "background": "town_square_dawn",
+    "nextNode": "ending_craftsman",
+    "choices": [],
+    "actions": []
+  },
+  {
+    "nodeId": "ending_adventure",
+    "speaker": "Narrator",
+    "text": "Your adventure in Millbrook begins with investigating the mysterious forest...",
+    "portrait": "",
+    "background": "forest_entrance",
+    "nextNode": "",
+    "choices": [],
+    "actions": [
+      {
+        "type": "loadScene",
+        "value": "ForestAdventure"
+      }
+    ]
+  },
+  {
+    "nodeId": "ending_work",
+    "speaker": "Narrator",
+    "text": "You've decided to help with the harvest season in Millbrook...",
+    "portrait": "",
+    "background": "farm_scene",
+    "nextNode": "",
+    "choices": [],
+    "actions": [
+      {
+        "type": "loadScene",
+        "value": "FarmScene"
+      }
+    ]
+  },
+  {
+    "nodeId": "ending_tour",
+    "speaker": "Narrator",
+    "text": "You've decided to take a tour of Millbrook before continuing your journey...",
+    "portrait": "",
+    "background": "town_square_day",
+    "nextNode": "",
+    "choices": [],
+    "actions": [
+      {
+        "type": "loadScene",
+        "value": "TownTour"
+      }
+    ]
+  },
+  {
+    "nodeId": "ending_craftsman",
+    "speaker": "Narrator",
+    "text": "You've found a place to practice your craft in Millbrook...",
+    "portrait": "",
+    "background": "workshop_scene",
+    "nextNode": "",
+    "choices": [],
+    "actions": [
+      {
+        "type": "loadScene",
+        "value": "CraftsmanScene"
+      }
+    ]
+  },
+  {
+    "nodeId": "ending_leave",
+    "speaker": "Narrator",
+    "text": "You've decided to leave Millbrook and continue your journey...",
+    "portrait": "",
+    "background": "road_scene",
+    "nextNode": "",
+    "choices": [],
+    "actions": [
+      {
+        "type": "loadScene",
+        "value": "MainMenu"
+      }
+    ]
+  }
+]

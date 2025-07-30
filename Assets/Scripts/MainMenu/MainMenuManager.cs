@@ -7,9 +7,16 @@ public class MainMenuManager : MonoBehaviour
     public void NewGame()
     {
         Debug.Log("Starting a New Game...");
-        // Replace "YourGameSceneName" with the actual name of your main gameplay scene.
-        // For example, "Day1_Scene" or "DinerScene".
-        SceneManager.LoadScene("SampleScene"); 
+        // Instead of directly loading a scene, start the dialogue
+        // Make sure DialogueManager exists
+        if (DialogueManager.Instance != null)
+        {
+            DialogueManager.Instance.StartDialogue("OpeningScene.json", "opening_001");
+        }
+        else
+        {
+            Debug.LogError("DialogueManager not found!");
+        }
     }
 
     // This function will be called by the "Load Game" button.
