@@ -1,0 +1,9 @@
+[
+  {
+    "itemName": "Burger",
+    "itemID": "food_burger",
+    "cookTime": 5.0,
+    "requiredStationID": "station_grill",
+    "scoreValue": 25
+  }
+]
