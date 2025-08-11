@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class UIManager : MonoBehaviour
 {
@@ -13,10 +12,10 @@ public class UIManager : MonoBehaviour
     [Header("Main Panels")]
     public GameObject upgradeShopPanel;
     public Button gameStateButton;
-    public TextMeshProUGUI gameStateButtonText;
+    public Text gameStateButtonText;
 
     [Header("UI Components")]
-    public TextMeshProUGUI earningsText;
+    public Text earningsText;
     public InventoryUI inventory;
     public ActivityLogUI log;
     public KitchenUI kitchen;
@@ -33,8 +32,7 @@ public class UIManager : MonoBehaviour
         gameStateButtonText.text = text;
     }
 
-    // --- THIS IS THE FIX ---
-    // The main UIManager class is now responsible for creating the log entry object.
+    // This function is now private because only the UIManager itself should call it.
     public void CreateLogEntry(string message, string color = "text-gray-300")
     {
         if (log.container != null && log.logTextPrefab != null)
@@ -76,8 +74,13 @@ public class ActivityLogUI
     public GameObject logTextPrefab;
     public void LogActivity(string message, string color = "text-gray-300")
     {
-        // The UI class now asks the UIManager to create the object for it.
-        UIManager.Instance.CreateLogEntry(message, color);
+        // --- THIS IS THE FIX ---
+        // The UI class now asks the main UIManager class to create the object for it,
+        // instead of trying to find the singleton instance itself.
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.CreateLogEntry(message, color);
+        }
     }
 }
 

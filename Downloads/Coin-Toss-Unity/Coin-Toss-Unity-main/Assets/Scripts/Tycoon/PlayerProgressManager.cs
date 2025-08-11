@@ -2,6 +2,7 @@
 // PURPOSE: Stores all persistent player data.
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI; // Make sure you have this for TextMeshPro or Text
 
 public class PlayerProgressManager : MonoBehaviour
 {
@@ -16,13 +17,35 @@ public class PlayerProgressManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        // This is the correct structure for a singleton
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    void Start()
+    {
+        // Call this here for testing to ensure the UIManager is ready.
+        AddEarnings(50); 
     }
 
     public void AddEarnings(int amount)
     {
         earnings += amount;
-        UIManager.Instance.earningsText.text = $"${earnings}";
+
+        // Safety check to prevent errors if the UI isn't set up
+        if (UIManager.Instance != null && UIManager.Instance.earningsText != null)
+        {
+            UIManager.Instance.earningsText.text = $"${earnings}";
+        }
+        else
+        {
+            Debug.LogWarning("Could not update earnings text. UIManager or its earningsText is not assigned.");
+        }
     }
 }

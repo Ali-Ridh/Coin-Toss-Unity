@@ -11,62 +11,133 @@ public class DinerManager : MonoBehaviour
     [Header("Spawning")]
     public GameObject customerPrefab;
     public Transform queueSpawnPoint;
-    public float spawnInterval = 8f;
+    public float spawnInterval = 5f;
+
+    [Header("Table Management")]
+    public GameObject tablePrefab;
+    public List<Transform> tableSpawnPoints;
 
     [Header("Game Balance")]
     public float baseCookTime = 8f;
-    
-    private List<Table> allTables = new List<Table>();
+
+    private List<Table> activeTables = new List<Table>();
     private List<CustomerController> customerQueue = new List<CustomerController>();
     private List<CustomerController> allCustomers = new List<CustomerController>();
     private List<CookingSlot> cookingSlots = new List<CookingSlot>();
 
+    private int customersToSpawnToday;
+    private int customersSpawnedToday;
+    private int customersFinishedToday;
+    private bool isShiftActive = false;
+
     void Awake()
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        // --- ADDED DEBUG LOG ---
+        if (Instance == null)
+        {
+            Instance = this;
+            Debug.Log("DinerManager instance created: " + gameObject.name);
+        }
+        else
+        {
+            Debug.LogWarning("Duplicate DinerManager found. Destroying: " + gameObject.name);
+            Destroy(gameObject);
+        }
     }
 
     void OnEnable()
     {
-        // This is called when the GameStateManager activates this object
+        // --- ADDED DEBUG LOG ---
+        Debug.Log("DinerManager.OnEnable() called. Starting shift...");
         StartShift();
     }
 
     void StartShift()
     {
-        allTables.Clear();
-        allTables.AddRange(FindObjectsByType<Table>(FindObjectsSortMode.None));
+        if (activeTables.Count == 0)
+        {
+            AddNewTable();
+        }
         
-        // Clear any leftover state from the previous day
         customerQueue.Clear();
         allCustomers.Clear();
         cookingSlots.Clear();
+        customersSpawnedToday = 0;
+        customersFinishedToday = 0;
+
+        int currentDay = PlayerProgressManager.Instance != null ? PlayerProgressManager.Instance.day : 1;
         
-        UIManager.Instance.log.LogActivity($"Day {PlayerProgressManager.Instance.day} has started!");
+        Debug.LogWarning("No schedule found for day " + currentDay + ". Defaulting to 5 customers.");
+        customersToSpawnToday = 5;
+        
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.log.LogActivity($"Day {currentDay} has started! Customers to serve: {customersToSpawnToday}");
+        }
+        
+        // --- ADDED DEBUG LOG ---
+        Debug.Log("Scheduling SpawnCustomer to run in 2 seconds.");
         InvokeRepeating(nameof(SpawnCustomer), 2f, spawnInterval);
+        isShiftActive = true;
+    }
+    
+    public bool CanAddTable()
+    {
+        return activeTables.Count < tableSpawnPoints.Count;
+    }
+
+    public void AddNewTable()
+    {
+        if (!CanAddTable()) return;
+
+        Transform spawnPoint = tableSpawnPoints[activeTables.Count];
+        GameObject tableObj = Instantiate(tablePrefab, spawnPoint.position, spawnPoint.rotation);
+        activeTables.Add(tableObj.GetComponent<Table>());
+    }
+
+    public void SeatCustomerFromQueue()
+    {
+        if (customerQueue.Count == 0) return;
+        Table availableTable = activeTables.Find(t => !t.IsOccupied);
+        if (availableTable != null)
+        {
+            CustomerController customer = customerQueue[0];
+            customerQueue.RemoveAt(0);
+            availableTable.SeatCustomer(customer);
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.log.LogActivity($"Seating Customer #{customer.GetInstanceID()} at Table {availableTable.GetInstanceID()}.");
+            }
+        }
+    }
+
+    public void OnCustomerFinished()
+    {
+        customersFinishedToday++;
     }
 
     void Update()
     {
-        // Clean up lists of customers who have been destroyed
+        if (!isShiftActive) return;
+
         customerQueue.RemoveAll(c => c == null);
         allCustomers.RemoveAll(c => c == null);
 
-        // Update cooking timers
         foreach (var slot in cookingSlots)
         {
             slot.cookTimer -= Time.deltaTime;
             if (slot.cookTimer <= 0 && !slot.isReady)
             {
                 slot.isReady = true;
-                UIManager.Instance.kitchen.UpdateDisplay(cookingSlots);
-                UIManager.Instance.log.LogActivity("A Burger is ready for pickup!");
+                if(UIManager.Instance != null)
+                {
+                    UIManager.Instance.kitchen.UpdateDisplay(cookingSlots);
+                    UIManager.Instance.log.LogActivity($"A {slot.itemData.itemName} is ready for pickup!");
+                }
             }
         }
 
-        // Check for end of day condition
-        if (allCustomers.Count == 0 && customerQueue.Count == 0 && cookingSlots.Count == 0)
+        if (customersFinishedToday >= customersToSpawnToday && customersToSpawnToday > 0)
         {
             EndShift();
         }
@@ -74,38 +145,52 @@ public class DinerManager : MonoBehaviour
 
     void EndShift()
     {
+        // --- ADDED DEBUG LOG ---
+        Debug.LogError("EndShift() has been called. Cancelling customer spawning.");
+        isShiftActive = false;
         CancelInvoke(nameof(SpawnCustomer));
-        PlayerProgressManager.Instance.day++;
-        GameStateManager.Instance.TransitionToState(GameStateManager.GameState.EndOfDay);
+        if (PlayerProgressManager.Instance != null)
+        {
+            PlayerProgressManager.Instance.day++;
+        }
+        if (GameStateManager.Instance != null)
+        {
+            GameStateManager.Instance.TransitionToState(GameStateManager.GameState.EndOfDay);
+        }
     }
 
     void SpawnCustomer()
     {
+        // --- THIS IS THE DEBUG LOG YOU ADDED ---
+        Debug.Log("SpawnCustomer() function was successfully called!");
+
+        if (customersSpawnedToday >= customersToSpawnToday)
+        {
+            CancelInvoke(nameof(SpawnCustomer));
+            return;
+        }
+
         GameObject customerObj = Instantiate(customerPrefab, queueSpawnPoint.position, Quaternion.identity);
         CustomerController customer = customerObj.GetComponent<CustomerController>();
+        
         customerQueue.Add(customer);
         allCustomers.Add(customer);
-        UIManager.Instance.log.LogActivity($"Customer #{customer.GetInstanceID()} has arrived.");
-    }
-
-    public void SeatCustomerFromQueue()
-    {
-        if (customerQueue.Count == 0) return;
-        Table availableTable = allTables.Find(t => !t.IsOccupied);
-        if (availableTable != null)
+        customersSpawnedToday++;
+        
+        if (UIManager.Instance != null)
         {
-            CustomerController customer = customerQueue[0];
-            customerQueue.RemoveAt(0);
-            availableTable.SeatCustomer(customer);
-            UIManager.Instance.log.LogActivity($"Seating Customer #{customer.GetInstanceID()} at Table {availableTable.GetInstanceID()}.");
+            UIManager.Instance.log.LogActivity($"A new customer has arrived ({customersSpawnedToday}/{customersToSpawnToday}).");
         }
     }
 
     public void AddOrderToKitchen(GameItem orderTicket)
     {
         cookingSlots.Add(new CookingSlot(orderTicket.linkedItem, baseCookTime));
-        UIManager.Instance.kitchen.UpdateDisplay(cookingSlots);
-        UIManager.Instance.log.LogActivity("An order for a Burger was placed.");
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.kitchen.UpdateDisplay(cookingSlots);
+            UIManager.Instance.log.LogActivity($"An order for a {orderTicket.linkedItem.itemName} was placed.");
+        }
     }
 
     public GameItem GetReadyFood()
@@ -114,18 +199,47 @@ public class DinerManager : MonoBehaviour
         if (readySlot != null)
         {
             cookingSlots.Remove(readySlot);
-            UIManager.Instance.kitchen.UpdateDisplay(cookingSlots);
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.kitchen.UpdateDisplay(cookingSlots);
+            }
             return new GameItem { type = GameItem.Type.Food, linkedItem = readySlot.itemData };
         }
         return null;
     }
+    
+    public void HandleTableInteraction(Table table)
+    {
+        if (table.IsOccupied && table.currentCustomer.currentState == CustomerController.State.WaitingToOrder)
+        {
+            GameItem ticket = new GameItem { type = GameItem.Type.Ticket, linkedItem = table.currentCustomer.orderItem };
+            if (InventoryManager.Instance.AddItem(ticket))
+            {
+                table.currentCustomer.OnOrderTaken();
+            }
+        }
+        else if (table.IsOccupied && table.currentCustomer.currentState == CustomerController.State.WaitingToOrder)
+        {
+            GameItem food = InventoryManager.Instance.items.FirstOrDefault(item => item.type == GameItem.Type.Food && item.linkedItem == table.currentCustomer.orderItem);
+            if (food != null)
+            {
+                InventoryManager.Instance.RemoveItem(food);
+                table.currentCustomer.OnFoodDelivered(food);
+            }
+        }
+    }
 }
 
-// Helper class for cooking
+
 public class CookingSlot
 {
     public GameItemData itemData;
     public float cookTimer;
     public bool isReady = false;
-    public CookingSlot(GameItemData item, float time) { itemData = item; cookTimer = time; }
+
+    public CookingSlot(GameItemData item, float time)
+    {
+        itemData = item;
+        cookTimer = time;
+    }
 }

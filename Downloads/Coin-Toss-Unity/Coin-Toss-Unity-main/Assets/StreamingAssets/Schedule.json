@@ -1,9 +1,42 @@
 [
   {
-    "day": 0,
-    "dayOfWeek": null,
-    "availableCompanionID": null,
-    "gossipTopic": null,
-    "specialEvent": null
+    "day": 1,
+    "dayOfWeek": "Monday",
+    "customerCount": 8, 
+    "availableCompanionID": "CompanionA",
+    "gossipTopic": "Introduction",
+    "specialEvent": "none"
+  },
+  {
+    "day": 2,
+    "dayOfWeek": "Tuesday",
+    "customerCount": 10, 
+    "availableCompanionID": "CompanionB",
+    "gossipTopic": "DinerSabotage",
+    "specialEvent": "none"
+  },
+  {
+    "day": 3,
+    "dayOfWeek": "Wednesday",
+    "customerCount": 12, 
+    "availableCompanionID": "CompanionC",
+    "gossipTopic": "DinerSabotage",
+    "specialEvent": "none"
+  },
+  {
+    "day": 4,
+    "dayOfWeek": "Thursday",
+    "customerCount": 15,
+    "availableCompanionID": "CompanionD",
+    "gossipTopic": "DinerSabotage",
+    "specialEvent": "none"
+  },
+  {
+    "day": 5,
+    "dayOfWeek": "Friday",
+    "customerCount": 20,
+    "availableCompanionID": "CompanionE",
+    "gossipTopic": "DinerSabotage",
+    "specialEvent": "none"
   }
 ]
