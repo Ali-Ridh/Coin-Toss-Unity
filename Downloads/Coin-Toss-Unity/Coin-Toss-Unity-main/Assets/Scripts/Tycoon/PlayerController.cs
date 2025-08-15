@@ -1,41 +1,87 @@
 // FILE: PlayerController.cs
-// PURPOSE: Handles player movement and triggers interactions.
+// PURPOSE: Handles direct physics-based movement, collision detection, and interaction triggers.
 using UnityEngine;
-using System.Collections;
 
+[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(CircleCollider2D))]
 public class PlayerController : MonoBehaviour
 {
-    public float speed = 5f;
-    private Vector3 targetPosition;
-    private bool isMoving = false;
+    [Header("Movement")]
+    public float moveForce = 50f; // The force applied to push the player towards the mouse
+    public float maxSpeed = 6f;   // The maximum speed the player can reach
+    public float linearDrag = 2.0f; // Controls how quickly the player slows down
+    public float collisionPenaltyThreshold = 8f; // Speed above which a collision causes a penalty
+
+    private Rigidbody2D rb;
+    private Camera mainCamera;
 
     void Start()
     {
-        targetPosition = transform.position;
+        rb = GetComponent<Rigidbody2D>();
+        mainCamera = Camera.main;
+        
+        rb.isKinematic = false; 
+        rb.gravityScale = 0;
+        rb.linearDamping = linearDrag;
     }
 
-    void Update()
+    void FixedUpdate()
     {
-        if (Vector3.Distance(transform.position, targetPosition) > 0.01f)
+        MoveTowardsMouse();
+    }
+
+    private void MoveTowardsMouse()
+    {
+        Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+        mouseWorldPos.z = 0; // Ensure we're working in 2D
+
+        Vector2 direction = (mouseWorldPos - transform.position).normalized;
+        
+        if (rb.linearVelocity.magnitude < maxSpeed)
         {
-            isMoving = true;
-            transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
+            rb.AddForce(direction * moveForce);
         }
-        else
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        float impactSpeed = collision.relativeVelocity.magnitude;
+        if (impactSpeed > collisionPenaltyThreshold)
         {
-            isMoving = false;
+            if (PlayerProgressManager.Instance != null)
+            {
+                PlayerProgressManager.Instance.AddEarnings(-5);
+            }
+            
+            // --- THIS IS THE FIX ---
+            // Get the UIManager reference from the GameStateManager.
+            if (GameStateManager.Instance.uiManager != null)
+            {
+                GameStateManager.Instance.uiManager.log.LogActivity("Ouch! You hit something too fast!", "text-yellow-400");
+            }
+
+            Table table = collision.gameObject.GetComponent<Table>();
+            if (table != null)
+            {
+                table.Shake();
+            }
         }
-    }
 
-    public void MoveTo(Vector3 destination, System.Action onArrivalCallback = null)
-    {
-        targetPosition = destination;
-        StartCoroutine(WaitForArrival(onArrivalCallback));
-    }
+        if (DinerManager.Instance != null)
+        {
+            Table table = collision.gameObject.GetComponent<Table>();
+            if (table != null)
+            {
+                DinerManager.Instance.HandleTableInteraction(table);
+                return;
+            }
 
-    private IEnumerator WaitForArrival(System.Action onArrivalCallback)
-    {
-        yield return new WaitUntil(() => !isMoving);
-        onArrivalCallback?.Invoke();
+            Station station = collision.gameObject.GetComponent<Station>();
+            if (station != null)
+            {
+                DinerManager.Instance.HandleStationInteraction(station);
+                return;
+            }
+        }
     }
 }

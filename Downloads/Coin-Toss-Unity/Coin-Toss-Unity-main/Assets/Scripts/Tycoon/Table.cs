@@ -1,7 +1,7 @@
 // FILE: Table.cs
-// PURPOSE: Manages the state of a single table.
+// PURPOSE: Manages the state of a single table and its visual effects.
+using System.Collections;
 using UnityEngine;
-using System.Linq;
 
 public class Table : MonoBehaviour
 {
@@ -9,37 +9,44 @@ public class Table : MonoBehaviour
     public bool IsOccupied { get; private set; }
     public CustomerController currentCustomer { get; private set; }
 
-    public void OnMouseDown()
+    private Vector3 originalPosition;
+    private Coroutine shakeCoroutine;
+
+    void Start()
     {
-        if (GameStateManager.Instance.currentState == GameStateManager.GameState.DinerShift)
-        {
-            PlayerProgressManager.Instance.player.MoveTo(transform.position, () => {
-                HandleInteraction();
-            });
-        }
+        originalPosition = transform.position;
     }
 
-    void HandleInteraction()
+    // This function starts the shake visual effect
+    public void Shake()
     {
-        if (IsOccupied && currentCustomer.currentState == CustomerController.State.WaitingToOrder)
+        // Stop any previous shake to prevent conflicts
+        if (shakeCoroutine != null)
         {
-            // Take order
-            GameItem ticket = new GameItem { type = GameItem.Type.Ticket, linkedItem = currentCustomer.orderItem };
-            if (InventoryManager.Instance.AddItem(ticket))
-            {
-                currentCustomer.OnOrderTaken();
-            }
+            StopCoroutine(shakeCoroutine);
+            transform.position = originalPosition; // Reset position
         }
-        else if (IsOccupied && currentCustomer.currentState == CustomerController.State.WaitingForFood)
+        shakeCoroutine = StartCoroutine(ShakeCoroutine());
+    }
+
+    private IEnumerator ShakeCoroutine()
+    {
+        float duration = 0.4f;
+        float magnitude = 0.1f;
+        float elapsed = 0.0f;
+
+        while (elapsed < duration)
         {
-            // Deliver food
-            GameItem food = InventoryManager.Instance.items.FirstOrDefault(item => item.type == GameItem.Type.Food && item.linkedItem == currentCustomer.orderItem);
-            if (food != null)
-            {
-                InventoryManager.Instance.RemoveItem(food);
-                currentCustomer.OnFoodDelivered(food);
-            }
+            float x = Random.Range(-1f, 1f) * magnitude;
+            float y = Random.Range(-1f, 1f) * magnitude;
+
+            transform.position = new Vector3(originalPosition.x + x, originalPosition.y + y, originalPosition.z);
+            elapsed += Time.deltaTime;
+            yield return null; // Wait for the next frame
         }
+
+        // Snap back to the original position when done
+        transform.position = originalPosition;
     }
 
     public void SeatCustomer(CustomerController customer)

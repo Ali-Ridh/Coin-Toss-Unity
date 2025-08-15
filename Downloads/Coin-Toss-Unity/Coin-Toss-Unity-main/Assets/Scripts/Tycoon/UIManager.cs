@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro; // Added for TextMeshPro support
 
 public class UIManager : MonoBehaviour
 {
@@ -12,10 +13,10 @@ public class UIManager : MonoBehaviour
     [Header("Main Panels")]
     public GameObject upgradeShopPanel;
     public Button gameStateButton;
-    public Text gameStateButtonText;
+    public TextMeshProUGUI gameStateButtonText; // Changed from Text to TextMeshProUGUI
 
     [Header("UI Components")]
-    public Text earningsText;
+    public TextMeshProUGUI earningsText; // Changed from Text to TextMeshProUGUI
     public InventoryUI inventory;
     public ActivityLogUI log;
     public KitchenUI kitchen;
@@ -23,8 +24,16 @@ public class UIManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        if (Instance == null)
+        {
+            Instance = this;
+            // Pass a direct reference of this UIManager to its helper classes.
+            log.Initialize(this);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     public void SetGameStateButtonText(string text)
@@ -38,8 +47,8 @@ public class UIManager : MonoBehaviour
         if (log.container != null && log.logTextPrefab != null)
         {
             GameObject logEntry = Instantiate(log.logTextPrefab, log.container);
-            logEntry.GetComponent<Text>().text = $"> {message}";
-            // Note: You will need a script to handle the color string or use a different method.
+            // Changed from GetComponent<Text> to GetComponent<TextMeshProUGUI>
+            logEntry.GetComponent<TextMeshProUGUI>().text = $"> {message}";
             logEntry.transform.SetAsFirstSibling();
         }
     }
@@ -72,14 +81,20 @@ public class ActivityLogUI
 {
     public Transform container;
     public GameObject logTextPrefab;
+    
+    private UIManager parentManager; // A private variable to hold the direct reference
+
+    public void Initialize(UIManager manager)
+    {
+        parentManager = manager;
+    }
+
     public void LogActivity(string message, string color = "text-gray-300")
     {
-        // --- THIS IS THE FIX ---
-        // The UI class now asks the main UIManager class to create the object for it,
-        // instead of trying to find the singleton instance itself.
-        if (UIManager.Instance != null)
+        // Now it calls the function on its guaranteed parent, not the unreliable singleton.
+        if (parentManager != null)
         {
-            UIManager.Instance.CreateLogEntry(message, color);
+            parentManager.CreateLogEntry(message, color);
         }
     }
 }
@@ -87,7 +102,7 @@ public class ActivityLogUI
 [System.Serializable]
 public class KitchenUI
 {
-    public Text kitchenText;
+    public TextMeshProUGUI kitchenText; // Changed from Text to TextMeshProUGUI
     public void UpdateDisplay(List<CookingSlot> slots)
     {
         int readyCount = slots.Count(s => s.isReady);

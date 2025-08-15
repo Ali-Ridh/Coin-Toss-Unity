@@ -8,16 +8,6 @@ public class Station : MonoBehaviour
     public enum StationType { Queue, Kitchen }
     public StationType type;
 
-    public void OnMouseDown()
-    {
-        if (GameStateManager.Instance.currentState == GameStateManager.GameState.DinerShift)
-        {
-            PlayerProgressManager.Instance.player.MoveTo(transform.position, () => {
-                HandleInteraction();
-            });
-        }
-    }
-
     void HandleInteraction()
     {
         if (type == StationType.Queue)

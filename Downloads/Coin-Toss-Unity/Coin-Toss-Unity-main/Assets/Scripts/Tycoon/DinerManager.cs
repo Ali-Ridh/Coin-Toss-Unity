@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using System.Threading;
 
 public class DinerManager : MonoBehaviour
 {
@@ -32,7 +33,6 @@ public class DinerManager : MonoBehaviour
 
     void Awake()
     {
-        // --- ADDED DEBUG LOG ---
         if (Instance == null)
         {
             Instance = this;
@@ -47,7 +47,6 @@ public class DinerManager : MonoBehaviour
 
     void OnEnable()
     {
-        // --- ADDED DEBUG LOG ---
         Debug.Log("DinerManager.OnEnable() called. Starting shift...");
         StartShift();
     }
@@ -75,8 +74,6 @@ public class DinerManager : MonoBehaviour
             UIManager.Instance.log.LogActivity($"Day {currentDay} has started! Customers to serve: {customersToSpawnToday}");
         }
         
-        // --- ADDED DEBUG LOG ---
-        Debug.Log("Scheduling SpawnCustomer to run in 2 seconds.");
         InvokeRepeating(nameof(SpawnCustomer), 2f, spawnInterval);
         isShiftActive = true;
     }
@@ -145,7 +142,6 @@ public class DinerManager : MonoBehaviour
 
     void EndShift()
     {
-        // --- ADDED DEBUG LOG ---
         Debug.LogError("EndShift() has been called. Cancelling customer spawning.");
         isShiftActive = false;
         CancelInvoke(nameof(SpawnCustomer));
@@ -161,7 +157,6 @@ public class DinerManager : MonoBehaviour
 
     void SpawnCustomer()
     {
-        // --- THIS IS THE DEBUG LOG YOU ADDED ---
         Debug.Log("SpawnCustomer() function was successfully called!");
 
         if (customersSpawnedToday >= customersToSpawnToday)
@@ -218,13 +213,40 @@ public class DinerManager : MonoBehaviour
                 table.currentCustomer.OnOrderTaken();
             }
         }
-        else if (table.IsOccupied && table.currentCustomer.currentState == CustomerController.State.WaitingToOrder)
+        else if (table.IsOccupied && table.currentCustomer.currentState == CustomerController.State.WaitingForFood)
         {
             GameItem food = InventoryManager.Instance.items.FirstOrDefault(item => item.type == GameItem.Type.Food && item.linkedItem == table.currentCustomer.orderItem);
             if (food != null)
             {
                 InventoryManager.Instance.RemoveItem(food);
                 table.currentCustomer.OnFoodDelivered(food);
+            }
+        }
+    }
+
+    // --- FIXED: ADDED MISSING FUNCTION ---
+    public void HandleStationInteraction(Station station)
+    {
+        if (station.type == Station.StationType.Queue)
+        {
+            SeatCustomerFromQueue();
+        }
+        else if (station.type == Station.StationType.Kitchen)
+        {
+            // Drop off ticket
+            GameItem ticket = InventoryManager.Instance.items.FirstOrDefault(item => item.type == GameItem.Type.Ticket);
+            if (ticket != null)
+            {
+                InventoryManager.Instance.RemoveItem(ticket);
+                AddOrderToKitchen(ticket);
+                return;
+            }
+
+            // Pick up food
+            GameItem foodToPickUp = GetReadyFood();
+            if (foodToPickUp != null)
+            {
+                InventoryManager.Instance.AddItem(foodToPickUp);
             }
         }
     }
