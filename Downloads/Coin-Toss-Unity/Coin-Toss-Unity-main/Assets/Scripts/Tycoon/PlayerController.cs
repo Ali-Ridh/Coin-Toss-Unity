@@ -1,19 +1,30 @@
 // FILE: PlayerController.cs
 // PURPOSE: Handles direct physics-based movement, collision detection, and interaction triggers.
 using UnityEngine;
+using System.Linq; // --- ADDED --- Required for FirstOrDefault
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CircleCollider2D))]
 public class PlayerController : MonoBehaviour
 {
+    public static PlayerController Instance;
+
     [Header("Movement")]
-    public float moveForce = 50f; // The force applied to push the player towards the mouse
-    public float maxSpeed = 6f;   // The maximum speed the player can reach
-    public float linearDrag = 2.0f; // Controls how quickly the player slows down
-    public float collisionPenaltyThreshold = 8f; // Speed above which a collision causes a penalty
+    public float moveForce = 50f;
+    public float maxSpeed = 6f;
+    public float linearDrag = 2.0f;
+    public float collisionPenaltyThreshold = 8f;
+
+    public CustomerController customerBeingEscorted { get; private set; }
 
     private Rigidbody2D rb;
     private Camera mainCamera;
+
+    void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
 
     void Start()
     {
@@ -22,6 +33,7 @@ public class PlayerController : MonoBehaviour
         
         rb.isKinematic = false; 
         rb.gravityScale = 0;
+        // --- FIXED --- Correct property name is 'drag'
         rb.linearDamping = linearDrag;
     }
 
@@ -33,43 +45,45 @@ public class PlayerController : MonoBehaviour
     private void MoveTowardsMouse()
     {
         Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
-        mouseWorldPos.z = 0; // Ensure we're working in 2D
+        mouseWorldPos.z = 0;
 
         Vector2 direction = (mouseWorldPos - transform.position).normalized;
         
+        // --- FIXED --- Correct property name is 'velocity'
         if (rb.linearVelocity.magnitude < maxSpeed)
         {
             rb.AddForce(direction * moveForce);
         }
     }
 
+    public void StartEscorting(CustomerController customer)
+    {
+        customerBeingEscorted = customer;
+        Debug.Log("Player is now escorting " + customer.name);
+    }
+
+    public void StopEscorting()
+    {
+        customerBeingEscorted = null;
+        Debug.Log("Player has finished escorting.");
+    }
+
     void OnCollisionEnter2D(Collision2D collision)
     {
-        float impactSpeed = collision.relativeVelocity.magnitude;
-        if (impactSpeed > collisionPenaltyThreshold)
+        Table table = collision.gameObject.GetComponent<Table>();
+        if (table != null)
         {
-            if (PlayerProgressManager.Instance != null)
+            float impactSpeed = collision.relativeVelocity.magnitude;
+            if (impactSpeed > collisionPenaltyThreshold)
             {
                 PlayerProgressManager.Instance.AddEarnings(-5);
-            }
-            
-            // --- THIS IS THE FIX ---
-            // Get the UIManager reference from the GameStateManager.
-            if (GameStateManager.Instance.uiManager != null)
-            {
-                GameStateManager.Instance.uiManager.log.LogActivity("Ouch! You hit something too fast!", "text-yellow-400");
-            }
-
-            Table table = collision.gameObject.GetComponent<Table>();
-            if (table != null)
-            {
+                GameStateManager.Instance.uiManager.log.LogActivity("Ouch! You hit a table too fast!", "text-yellow-400");
                 table.Shake();
             }
         }
 
         if (DinerManager.Instance != null)
         {
-            Table table = collision.gameObject.GetComponent<Table>();
             if (table != null)
             {
                 DinerManager.Instance.HandleTableInteraction(table);
@@ -80,6 +94,23 @@ public class PlayerController : MonoBehaviour
             if (station != null)
             {
                 DinerManager.Instance.HandleStationInteraction(station);
+                return;
+            }
+
+            CustomerController customer = collision.gameObject.GetComponent<CustomerController>();
+            if (customer != null)
+            {
+                // Check if the player is holding tea to give to the customer (priority interaction)
+                GameItem teaInHand = InventoryManager.Instance.items.FirstOrDefault(item => item.linkedItem.itemName == "Tea");
+                if (teaInHand != null)
+                {
+                    DinerManager.Instance.HandleTeaDelivery(customer);
+                }
+                else
+                {
+                    // If not holding tea, this is a seating interaction.
+                    DinerManager.Instance.HandleCustomerInteraction(customer);
+                }
                 return;
             }
         }

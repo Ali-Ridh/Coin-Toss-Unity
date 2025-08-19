@@ -31,7 +31,7 @@ public class PlayerProgressManager : MonoBehaviour
     void Start()
     {
         // Call this here for testing to ensure the UIManager is ready.
-        AddEarnings(50); 
+        AddEarnings(1000); 
     }
 
     public void AddEarnings(int amount)

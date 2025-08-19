@@ -1,0 +1,90 @@
+[
+  {
+  "speaker": "Heroine_1",
+  "dialogueText": "Hey, Emma. I’m glad you could make it. How have you been?",
+  "emotionIndex": 0,
+  "background": "Sprite/3. UI/1. BACKGROUND/HomeScree_Plain",
+  "voiceClip": "voiceclip_guid_placeholder_1",
+  "leftPortrait": "Heroine_3",
+  "rightPortrait": "Portraits/RightSpeaker",
+  "speakerPosition": "left",
+  "choices": [],
+  "actionType": 1
+  },
+  {
+  "speaker": "Emma",
+  "dialogueText": "Hi, Alex. I’ve been okay, just busy with work. You?",
+  "emotionIndex": 0,
+  "background": "background_guid_placeholder",
+  "voiceClip": "voiceclip_guid_placeholder_2",
+  "leftPortrait": "Portraits/LeftSpeaker",
+  "rightPortrait": "Portraits/Emma",
+  "speakerPosition": "right",
+  "choices": [],
+  "actionType": 1
+  },
+  {
+  "speaker": "Alex",
+  "dialogueText": "Same here, actually. But I’ve been thinking about our conversation last week…",
+  "emotionIndex": 1,
+  "background": "background_guid_placeholder",
+  "voiceClip": "voiceclip_guid_placeholder_3",
+  "leftPortrait": "Portraits/Alex",
+  "rightPortrait": "Portraits/Emma",
+  "speakerPosition": "left",
+  "choices": [],
+  "actionType": 1
+  },
+  {
+  "speaker": "Emma",
+  "dialogueText": "Oh? What about it?",
+  "emotionIndex": 1,
+  "background": "background_guid_placeholder",
+  "voiceClip": "voiceclip_guid_placeholder_4",
+  "leftPortrait": "Portraits/Alex",
+  "rightPortrait": "Portraits/Emma",
+  "speakerPosition": "right",
+  "choices": [],
+  "actionType": 1
+  },
+  {
+  "speaker": "Alex",
+  "dialogueText": "You mentioned wanting to try something new, maybe a change of pace. Have you given it more thought?",
+  "emotionIndex": 1,
+  "background": "background_guid_placeholder",
+  "voiceClip": "voiceclip_guid_placeholder_5",
+  "leftPortrait": "Portraits/Alex",
+  "rightPortrait": "Portraits/Emma",
+  "speakerPosition": "left",
+  "choices": [],
+  "actionType": 1
+  },
+  {
+    "speaker": "Emma",
+    "dialogueText": "A little… I guess I'm still not sure. It feels like a big step.",
+    "emotionIndex": 1,
+    "background": "background_guid_placeholder",
+    "voiceClip": "voiceclip_guid_placeholder_6",
+    "leftPortrait": "Portraits/Alex",
+    "rightPortrait": "Portraits/Emma",
+    "speakerPosition": "right",
+    "choices": [
+      {
+        "choiceText": "Encourage Emma to take the step.",
+        "nextDialogue": "Path_Encourage_placeholder",
+        "nextLineIndex": 0
+      },
+      {
+        "choiceText": "Ask Emma why she's hesitant.",
+        "nextDialogue": "Path_Hesitant_placeholder",
+        "nextLineIndex": 0
+      },
+      {
+        "choiceText": "Change the topic to something lighter.",
+        "nextDialogue": "Path_ChangeTopic_placeholder",
+        "nextLineIndex": 0
+      }
+    ],
+    "actionType": 1
+  }
+]

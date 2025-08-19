@@ -1,17 +1,16 @@
 // FILE: GameStateManager.cs
 // PURPOSE: The highest-level manager. Controls game flow and holds safe references.
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 public class GameStateManager : MonoBehaviour
 {
-    public enum GameState { PreOpening, DinerShift, EndOfDay }
-    public GameState currentState { get; private set; }
-
     public static GameStateManager Instance;
 
     [Header("Core Managers")]
     // --- THIS IS THE FIX ---
-    // Assign your UIManager GameObject here in the Inspector.
+    // This public variable allows you to assign the UIManager in the Inspector.
     public UIManager uiManager; 
 
     [Header("Scene Objects")]
@@ -35,6 +34,9 @@ public class GameStateManager : MonoBehaviour
     {
         TransitionToState(GameState.PreOpening);
     }
+
+    public enum GameState { PreOpening, DinerShift, EndOfDay }
+    public GameState currentState { get; private set; }
 
     public void TransitionToState(GameState newState)
     {

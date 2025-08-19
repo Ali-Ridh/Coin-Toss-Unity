@@ -1,9 +1,9 @@
 // FILE: DinerManager.cs
 // PURPOSE: Manages the core gameplay loop ONLY during the DinerShift state.
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using System.Threading;
 
 public class DinerManager : MonoBehaviour
 {
@@ -12,7 +12,7 @@ public class DinerManager : MonoBehaviour
     [Header("Spawning")]
     public GameObject customerPrefab;
     public Transform queueSpawnPoint;
-    public float spawnInterval = 5f;
+    public float spawnInterval = 5f; // Time between each customer spawn
 
     [Header("Table Management")]
     public GameObject tablePrefab;
@@ -20,8 +20,13 @@ public class DinerManager : MonoBehaviour
 
     [Header("Game Balance")]
     public float baseCookTime = 8f;
-
+    public GameItemData teaItemData; // Assign your "Tea" GameItemData asset here
+    public int teaCost = 2;
+    
+    // --- THIS IS THE FIX ---
+    // The list that holds the active tables was missing.
     private List<Table> activeTables = new List<Table>();
+    
     private List<CustomerController> customerQueue = new List<CustomerController>();
     private List<CustomerController> allCustomers = new List<CustomerController>();
     private List<CookingSlot> cookingSlots = new List<CookingSlot>();
@@ -45,10 +50,18 @@ public class DinerManager : MonoBehaviour
         }
     }
 
+    // OnEnable is called when the script component is enabled by the GameStateManager
     void OnEnable()
     {
-        Debug.Log("DinerManager.OnEnable() called. Starting shift...");
         StartShift();
+    }
+
+    // --- NEW --- OnDisable is called when the script is disabled
+    void OnDisable()
+    {
+        // This is a safe way to stop the spawning process when the day ends.
+        CancelInvoke(nameof(SpawnCustomer));
+        isShiftActive = false;
     }
 
     void StartShift()
@@ -63,19 +76,50 @@ public class DinerManager : MonoBehaviour
         cookingSlots.Clear();
         customersSpawnedToday = 0;
         customersFinishedToday = 0;
-
         int currentDay = PlayerProgressManager.Instance != null ? PlayerProgressManager.Instance.day : 1;
-        
-        Debug.LogWarning("No schedule found for day " + currentDay + ". Defaulting to 5 customers.");
-        customersToSpawnToday = 5;
-        
-        if (UIManager.Instance != null)
+        DailyScheduleEntry todaySchedule = DataLoader.Instance.FullSchedule.Find(d => d.day == currentDay);
+        if (todaySchedule != null)
         {
-            UIManager.Instance.log.LogActivity($"Day {currentDay} has started! Customers to serve: {customersToSpawnToday}");
+            customersToSpawnToday = todaySchedule.customerCount;
+        }
+        else
+        {
+        // Because the code above is skipped, the game always runs this part
+            Debug.LogWarning("No schedule found for day " + currentDay + ". Defaulting to 5 customers.");
+            customersToSpawnToday = 5; // Fallback value
+        }
+        if (GameStateManager.Instance.uiManager != null && PlayerProgressManager.Instance != null)
+        {
+            GameStateManager.Instance.uiManager.log.LogActivity($"Day {PlayerProgressManager.Instance.day} has started!");
         }
         
+        // --- THIS IS THE FIX ---
+        // Use InvokeRepeating to call SpawnCustomer every 'spawnInterval' seconds, starting after 2 seconds.
         InvokeRepeating(nameof(SpawnCustomer), 2f, spawnInterval);
         isShiftActive = true;
+    }
+    
+    void SpawnCustomer()
+    {
+        // Stop spawning if we've reached the daily limit
+        if (customersSpawnedToday >= customersToSpawnToday)
+        {
+            CancelInvoke(nameof(SpawnCustomer)); // Stop the spawner for the rest of the day
+            return;
+        }
+
+        GameObject customerObj = Instantiate(customerPrefab, queueSpawnPoint.position, Quaternion.identity);
+        CustomerController customer = customerObj.GetComponent<CustomerController>();
+        
+        allCustomers.Add(customer);
+        customersSpawnedToday++;
+        
+        // The customer adds itself to the queue in its Start() method.
+        
+        if (GameStateManager.Instance.uiManager != null)
+        {
+            GameStateManager.Instance.uiManager.log.LogActivity($"A new customer has arrived ({customersSpawnedToday}/{customersToSpawnToday}).");
+        }
     }
     
     public bool CanAddTable()
@@ -90,22 +134,6 @@ public class DinerManager : MonoBehaviour
         Transform spawnPoint = tableSpawnPoints[activeTables.Count];
         GameObject tableObj = Instantiate(tablePrefab, spawnPoint.position, spawnPoint.rotation);
         activeTables.Add(tableObj.GetComponent<Table>());
-    }
-
-    public void SeatCustomerFromQueue()
-    {
-        if (customerQueue.Count == 0) return;
-        Table availableTable = activeTables.Find(t => !t.IsOccupied);
-        if (availableTable != null)
-        {
-            CustomerController customer = customerQueue[0];
-            customerQueue.RemoveAt(0);
-            availableTable.SeatCustomer(customer);
-            if (UIManager.Instance != null)
-            {
-                UIManager.Instance.log.LogActivity($"Seating Customer #{customer.GetInstanceID()} at Table {availableTable.GetInstanceID()}.");
-            }
-        }
     }
 
     public void OnCustomerFinished()
@@ -126,14 +154,15 @@ public class DinerManager : MonoBehaviour
             if (slot.cookTimer <= 0 && !slot.isReady)
             {
                 slot.isReady = true;
-                if(UIManager.Instance != null)
+                if(GameStateManager.Instance.uiManager != null)
                 {
-                    UIManager.Instance.kitchen.UpdateDisplay(cookingSlots);
-                    UIManager.Instance.log.LogActivity($"A {slot.itemData.itemName} is ready for pickup!");
+                    GameStateManager.Instance.uiManager.kitchen.UpdateDisplay(cookingSlots);
+                    GameStateManager.Instance.uiManager.log.LogActivity($"A {slot.itemData.itemName} is ready for pickup!");
                 }
             }
         }
 
+        // The day ends when all spawned customers have finished.
         if (customersFinishedToday >= customersToSpawnToday && customersToSpawnToday > 0)
         {
             EndShift();
@@ -142,9 +171,10 @@ public class DinerManager : MonoBehaviour
 
     void EndShift()
     {
-        Debug.LogError("EndShift() has been called. Cancelling customer spawning.");
+        Debug.LogError("EndShift() has been called.");
         isShiftActive = false;
-        CancelInvoke(nameof(SpawnCustomer));
+        CancelInvoke(nameof(SpawnCustomer)); // Ensure the spawner is stopped
+
         if (PlayerProgressManager.Instance != null)
         {
             PlayerProgressManager.Instance.day++;
@@ -155,36 +185,18 @@ public class DinerManager : MonoBehaviour
         }
     }
 
-    void SpawnCustomer()
+    public void AddCustomerToQueue(CustomerController customer)
     {
-        Debug.Log("SpawnCustomer() function was successfully called!");
-
-        if (customersSpawnedToday >= customersToSpawnToday)
-        {
-            CancelInvoke(nameof(SpawnCustomer));
-            return;
-        }
-
-        GameObject customerObj = Instantiate(customerPrefab, queueSpawnPoint.position, Quaternion.identity);
-        CustomerController customer = customerObj.GetComponent<CustomerController>();
-        
         customerQueue.Add(customer);
-        allCustomers.Add(customer);
-        customersSpawnedToday++;
-        
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.log.LogActivity($"A new customer has arrived ({customersSpawnedToday}/{customersToSpawnToday}).");
-        }
     }
 
     public void AddOrderToKitchen(GameItem orderTicket)
     {
         cookingSlots.Add(new CookingSlot(orderTicket.linkedItem, baseCookTime));
-        if (UIManager.Instance != null)
+        if (GameStateManager.Instance.uiManager != null)
         {
-            UIManager.Instance.kitchen.UpdateDisplay(cookingSlots);
-            UIManager.Instance.log.LogActivity($"An order for a {orderTicket.linkedItem.itemName} was placed.");
+            GameStateManager.Instance.uiManager.kitchen.UpdateDisplay(cookingSlots);
+            GameStateManager.Instance.uiManager.log.LogActivity($"An order for a {orderTicket.linkedItem.itemName} was placed.");
         }
     }
 
@@ -194,9 +206,9 @@ public class DinerManager : MonoBehaviour
         if (readySlot != null)
         {
             cookingSlots.Remove(readySlot);
-            if (UIManager.Instance != null)
+            if (GameStateManager.Instance.uiManager != null)
             {
-                UIManager.Instance.kitchen.UpdateDisplay(cookingSlots);
+                GameStateManager.Instance.uiManager.kitchen.UpdateDisplay(cookingSlots);
             }
             return new GameItem { type = GameItem.Type.Food, linkedItem = readySlot.itemData };
         }
@@ -205,6 +217,25 @@ public class DinerManager : MonoBehaviour
     
     public void HandleTableInteraction(Table table)
     {
+        // Prioritize delivering tea if the player is holding it.
+        GameItem teaInHand = InventoryManager.Instance.items.FirstOrDefault(item => item.linkedItem == teaItemData);
+        if (teaInHand != null && table.IsOccupied)
+        {
+            HandleTeaDelivery(table.currentCustomer);
+            return; // Tea delivery takes precedence over other interactions.
+        }
+
+        // Escort seating logic
+        PlayerController player = PlayerController.Instance;
+        if (player.customerBeingEscorted != null && !table.IsOccupied)
+        {
+            table.SeatCustomer(player.customerBeingEscorted);
+            player.StopEscorting();
+            UIManager.Instance.log.LogActivity($"Customer seated at Table #{table.GetInstanceID()}.");
+            return;
+        }
+
+        // Logic for taking orders & delivering food
         if (table.IsOccupied && table.currentCustomer.currentState == CustomerController.State.WaitingToOrder)
         {
             GameItem ticket = new GameItem { type = GameItem.Type.Ticket, linkedItem = table.currentCustomer.orderItem };
@@ -224,16 +255,14 @@ public class DinerManager : MonoBehaviour
         }
     }
 
-    // --- FIXED: ADDED MISSING FUNCTION ---
     public void HandleStationInteraction(Station station)
     {
         if (station.type == Station.StationType.Queue)
         {
-            SeatCustomerFromQueue();
+            // This interaction is now handled by colliding with the customer directly.
         }
         else if (station.type == Station.StationType.Kitchen)
         {
-            // Drop off ticket
             GameItem ticket = InventoryManager.Instance.items.FirstOrDefault(item => item.type == GameItem.Type.Ticket);
             if (ticket != null)
             {
@@ -242,11 +271,64 @@ public class DinerManager : MonoBehaviour
                 return;
             }
 
-            // Pick up food
             GameItem foodToPickUp = GetReadyFood();
             if (foodToPickUp != null)
             {
                 InventoryManager.Instance.AddItem(foodToPickUp);
+            }
+        }
+        else if (station.type == Station.StationType.TeaStand)
+        {
+            if (PlayerProgressManager.Instance.earnings >= teaCost)
+            {
+                GameItem tea = new GameItem { type = GameItem.Type.Food, linkedItem = teaItemData };
+                if (InventoryManager.Instance.AddItem(tea))
+                {
+                    PlayerProgressManager.Instance.AddEarnings(-teaCost);
+                    UIManager.Instance.log.LogActivity("Purchased a Tea for $2.");
+                }
+            }
+            else
+            {
+                UIManager.Instance.log.LogActivity("Not enough money for Tea!", "text-red-400");
+            }
+        }
+    }
+
+    public void HandleTeaDelivery(CustomerController customer)
+    {
+        GameItem teaInHand = InventoryManager.Instance.items.FirstOrDefault(item => item.linkedItem == teaItemData);
+        if (teaInHand != null)
+        {
+            // --- THIS IS THE FIX ---
+            // The condition now includes all valid "waiting" states for a customer.
+            if (customer.currentState == CustomerController.State.InQueue || 
+                customer.currentState == CustomerController.State.Seated ||
+                customer.currentState == CustomerController.State.WaitingToOrder ||
+                customer.currentState == CustomerController.State.WaitingForFood)
+            {
+                InventoryManager.Instance.RemoveItem(teaInHand);
+                customer.RestorePatience();
+                UIManager.Instance.log.LogActivity($"Gave Tea to Customer #{customer.GetInstanceID()}.");
+            }
+        }
+    }
+
+    public void HandleCustomerInteraction(CustomerController customer)
+    {
+        // Only interact with customers who are waiting in the queue.
+        if (customer.currentState == CustomerController.State.InQueue)
+        {
+            Table availableTable = activeTables.Find(t => !t.IsOccupied);
+            if (availableTable != null)
+            {
+                customerQueue.Remove(customer); // Remove from the waiting list
+                availableTable.SeatCustomer(customer);
+                UIManager.Instance.log.LogActivity($"Seating a customer at Table #{activeTables.IndexOf(availableTable) + 1}.");
+            }
+            else
+            {
+                UIManager.Instance.log.LogActivity("No available tables to seat the customer!");
             }
         }
     }

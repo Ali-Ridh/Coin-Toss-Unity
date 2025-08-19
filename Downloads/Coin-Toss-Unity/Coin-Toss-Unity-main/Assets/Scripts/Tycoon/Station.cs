@@ -1,36 +1,13 @@
 // FILE: Station.cs
-// PURPOSE: Manages interactions with static stations.
+// PURPOSE: A simple component to identify a station and its type.
 using UnityEngine;
-using System.Linq;
 
 public class Station : MonoBehaviour
 {
-    public enum StationType { Queue, Kitchen }
+    public enum StationType { Queue, Kitchen, Dishes, TeaStand }
     public StationType type;
 
-    void HandleInteraction()
-    {
-        if (type == StationType.Queue)
-        {
-            DinerManager.Instance.SeatCustomerFromQueue();
-        }
-        else if (type == StationType.Kitchen)
-        {
-            // Drop off ticket
-            GameItem ticket = InventoryManager.Instance.items.FirstOrDefault(item => item.type == GameItem.Type.Ticket);
-            if (ticket != null)
-            {
-                InventoryManager.Instance.RemoveItem(ticket);
-                DinerManager.Instance.AddOrderToKitchen(ticket);
-                return; // Only do one action per click
-            }
-
-            // Pick up food
-            GameItem foodToPickUp = DinerManager.Instance.GetReadyFood();
-            if (foodToPickUp != null)
-            {
-                InventoryManager.Instance.AddItem(foodToPickUp);
-            }
-        }
-    }
+    // In the new system, this script has no functions.
+    // Its only job is to hold the 'type' variable so the
+    // PlayerController knows what it has collided with.
 }

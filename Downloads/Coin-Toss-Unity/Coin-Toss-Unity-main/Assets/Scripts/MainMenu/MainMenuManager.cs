@@ -7,11 +7,13 @@ public class MainMenuManager : MonoBehaviour
     public void NewGame()
     {
         Debug.Log("Starting a New Game...");
-        // Instead of directly loading a scene, start the dialogue
-        // Make sure DialogueManager exists
+        
         if (DialogueManager.Instance != null)
         {
-            DialogueManager.Instance.StartDialogue("OpeningScene.json", "opening_001");
+            // --- THIS IS THE FIX ---
+            // The StartDialogue function only needs the name of the conversation file.
+            // The .json part is added automatically by the DialogueManager.
+            DialogueManager.Instance.StartDialogue("TestDialogue");
         }
         else
         {
@@ -24,7 +26,6 @@ public class MainMenuManager : MonoBehaviour
     {
         Debug.Log("Opening the Load Game screen...");
         // In a real game, this would likely open another UI panel with save slots.
-        // For now, we'll just log a message.
     }
 
     // This function will be called by the "Options" button.
