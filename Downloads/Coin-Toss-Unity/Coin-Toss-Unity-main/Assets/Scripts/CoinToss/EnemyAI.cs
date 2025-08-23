@@ -18,6 +18,20 @@ public class EnemyAI : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
     }
 
+    void Update()
+    {
+        // Ensure the Rigidbody2D is not kinematic.
+        if (rb.isKinematic)
+        {
+            rb.isKinematic = false;
+        }
+        // Check if the enemy's health has dropped to 0 or below.
+        if (HP <= 0)
+        {
+            Die();
+        }
+    }
+
     void Start()
     {
         // Find the player's transform so the enemy knows where to aim.
@@ -44,16 +58,19 @@ public class EnemyAI : MonoBehaviour
         // Print the remaining HP to the console for debugging.
         Debug.Log(gameObject.name + " took " + damageAmount + " damage, remaining HP: " + HP);
 
-        // Check if the enemy's health has dropped to 0 or below.
-        if (HP <= 0)
-        {
-            Die();
-        }
+        // Notify UI manager
+        GameUIManager.Instance?.UpdateEnemyHealth(this);
+
+
     }
     private void Die()
     {
         Debug.Log(gameObject.name + " has been defeated!");
+        // Remove from CoinGameManager's enemy list before destroying
+        CoinGameManager.Instance?.RemoveEnemy(this);
         Destroy(gameObject);
+        // Notify UI manager (enemy removed)
+        GameUIManager.Instance?.UpdateEnemyHealth(this);
     }
 
     // --- AI Logic ---
@@ -76,5 +93,21 @@ public class EnemyAI : MonoBehaviour
         // Apply force to launch the enemy towards the player.
         rb.AddForce(direction * power, ForceMode2D.Impulse);
         Debug.Log(gameObject.name + " takes its turn.");
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        var gameManager = CoinGameManager.Instance;
+        if (gameManager == null) return;
+
+        // Only damage player during enemy turn
+        if (gameManager.currentState == CoinGameManager.GameState.EnemyTurn)
+        {
+            DragNShoot player = collision.gameObject.GetComponent<DragNShoot>();
+            if (player != null)
+            {
+                player.TakeDamage(25f);
+            }
+        }
     }
 }

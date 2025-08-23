@@ -25,39 +25,57 @@ public class CustomerController : MonoBehaviour
 
     void Start()
     {
+        Debug.Log($"[CustomerController] Start for {gameObject.name}");
         currentPatience = maxPatience;
-        
-        // Find the player instance once and store it
-        if (PlayerController.Instance != null)
+        try
         {
-            targetToFollow = PlayerController.Instance.transform;
-        }
+            // Find the player instance once and store it
+            if (PlayerController.Instance != null)
+            {
+                targetToFollow = PlayerController.Instance.transform;
+            }
 
-        // Order the first available item
-        if (PlayerProgressManager.Instance.unlockedItems.Count > 0)
+            // Order the first available item
+            if (PlayerProgressManager.Instance.unlockedItems.Count > 0)
+            {
+                orderItem = PlayerProgressManager.Instance.unlockedItems[0]; 
+            }
+            DinerManager.Instance.AddCustomerToQueue(this);
+
+            // --- NEW --- Create the patience bar when the customer spawns
+            CreatePatienceBar();
+        }
+        catch (System.Exception ex)
         {
-            orderItem = PlayerProgressManager.Instance.unlockedItems[0]; 
+            Debug.LogError($"[CustomerController] Exception in Start: {ex.Message}");
         }
-        DinerManager.Instance.AddCustomerToQueue(this);
-
-        // --- NEW --- Create the patience bar when the customer spawns
-        CreatePatienceBar();
     }
+
 
     void Update()
     {
-        if (currentState == State.FollowingPlayer && targetToFollow != null)
+        try
         {
-            if (Vector3.Distance(transform.position, targetToFollow.position) > followDistance)
+            Debug.Log($"[CustomerController] Update for {gameObject.name}, State: {currentState}, Patience: {currentPatience}");
+            if (currentState == State.FollowingPlayer && targetToFollow != null)
             {
-                transform.position = Vector3.MoveTowards(transform.position, targetToFollow.position, followSpeed * Time.deltaTime);
+                if (Vector3.Distance(transform.position, targetToFollow.position) > followDistance)
+                {
+                    transform.position = Vector3.MoveTowards(transform.position, targetToFollow.position, followSpeed * Time.deltaTime);
+                }
             }
-        }
 
-        // --- NEW --- Decrease patience and update the bar
-        if (currentState != State.Eating)
-        {
-            currentPatience -= Time.deltaTime;
+            // --- NEW --- Decrease patience and update the bar
+            if (currentState != State.Eating)
+            {
+                currentPatience -= Time.deltaTime;
+                if (currentPatience < 0)
+                {
+                    Debug.LogWarning($"[CustomerController] Patience ran out for {gameObject.name}");
+                    currentPatience = 0;
+                }
+            }
+
             if (patienceBarInstance != null)
             {
                 patienceBarInstance.value = currentPatience / maxPatience;
@@ -65,11 +83,15 @@ public class CustomerController : MonoBehaviour
 
             if (currentPatience <= 0)
             {
+                Debug.LogWarning($"[CustomerController] {gameObject.name} is leaving due to patience <= 0");
                 Leave(false);
             }
         }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"[CustomerController] Exception in Update: {ex.Message}");
+        }
     }
-
     private void CreatePatienceBar()
     {
         // Find the main Canvas in the scene
@@ -135,7 +157,11 @@ public class CustomerController : MonoBehaviour
 
     void FinishEating()
     {
-        PlayerProgressManager.Instance.AddEarnings(20);
+        GameManager.Instance.AddMoney(20);
+        if (UIManager.Instance != null && UIManager.Instance.earningsText != null)
+        {
+            UIManager.Instance.earningsText.text = $"${GameManager.Instance.Money}";
+        }
         Leave(true);
     }
 

@@ -42,24 +42,24 @@ public class DialogueUI : MonoBehaviour
     }
 
     void Start()
-    {
-        // Make sure the dialogue is hidden when the game starts
-        dialoguePanel.SetActive(false);
-        
-        // Connect the UI buttons to the DialogueManager functions
-        if (nextButton != null)
         {
-            nextButton.onClick.AddListener(() => DialogueManager.Instance.NextLine());
+            // Show the dialogue panel immediately so the UI is visible before the first dialogue line arrives
+            dialoguePanel.SetActive(true);
+
+            // Connect the UI buttons to the DialogueManager functions
+            if (nextButton != null)
+            {
+                nextButton.onClick.AddListener(() => DialogueManager.Instance.NextLine());
+            }
+            if (autoButton != null)
+            {
+                autoButton.onClick.AddListener(() => DialogueManager.Instance.ToggleAutoMode());
+            }
+            if (skipButton != null)
+            {
+                skipButton.onClick.AddListener(() => DialogueManager.Instance.SkipToEnd());
+            }
         }
-        if (autoButton != null)
-        {
-            autoButton.onClick.AddListener(() => DialogueManager.Instance.ToggleAutoMode());
-        }
-        if (skipButton != null)
-        {
-            skipButton.onClick.AddListener(() => DialogueManager.Instance.SkipToEnd());
-        }
-    }
 
     // --- Event Handler Functions ---
 

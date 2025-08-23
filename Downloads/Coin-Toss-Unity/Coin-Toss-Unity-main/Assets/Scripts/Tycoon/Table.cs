@@ -20,6 +20,7 @@ public class Table : MonoBehaviour
     // This function starts the shake visual effect
     public void Shake()
     {
+        Debug.Log($"[Table] Shake started for {gameObject.name}");
         // Stop any previous shake to prevent conflicts
         if (shakeCoroutine != null)
         {
@@ -31,12 +32,18 @@ public class Table : MonoBehaviour
 
     private IEnumerator ShakeCoroutine()
     {
+        Debug.Log($"[Table] ShakeCoroutine started for {gameObject.name}");
         float duration = 0.4f;
         float magnitude = 0.1f;
         float elapsed = 0.0f;
-
+        float maxDuration = 2.0f; // Safety timeout
         while (elapsed < duration)
         {
+            if (elapsed > maxDuration)
+            {
+                Debug.LogWarning($"[Table] ShakeCoroutine timed out for {gameObject.name}");
+                break;
+            }
             float x = Random.Range(-1f, 1f) * magnitude;
             float y = Random.Range(-1f, 1f) * magnitude;
 
@@ -44,9 +51,9 @@ public class Table : MonoBehaviour
             elapsed += Time.deltaTime;
             yield return null; // Wait for the next frame
         }
-
         // Snap back to the original position when done
         transform.position = originalPosition;
+        Debug.Log($"[Table] ShakeCoroutine ended for {gameObject.name}");
     }
 
     public void SeatCustomer(CustomerController customer)

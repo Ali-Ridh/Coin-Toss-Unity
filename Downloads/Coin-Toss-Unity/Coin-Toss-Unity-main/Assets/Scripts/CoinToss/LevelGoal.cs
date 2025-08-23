@@ -86,7 +86,6 @@ public class LevelGoal : MonoBehaviour
     void Start()
     {
         // Initialize all conditions
-        foreach (var condition in winConditions) condition.Initialize();
         foreach (var condition in loseConditions) condition.Initialize();
     }
 
@@ -126,12 +125,17 @@ public class LevelGoal : MonoBehaviour
         levelOver = true;
         Debug.Log("LEVEL WON!");
         // Add your win screen logic here
+        if (DayCycleManager.Instance != null)
+        {
+            DayCycleManager.Instance.NextStep();
+        }
     }
 
     void TriggerLose()
     {
-        levelOver = true;
-        Debug.Log("LEVEL LOST!");
-        // Add your lose screen logic here
+    levelOver = true;
+    Debug.Log("LEVEL LOST!");
+    UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+    // Add your lose screen logic here
     }
 }

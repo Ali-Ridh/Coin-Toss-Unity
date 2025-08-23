@@ -9,7 +9,6 @@ public class PlayerProgressManager : MonoBehaviour
     public static PlayerProgressManager Instance;
 
     public int day = 1;
-    public int earnings = 0;
     public float cookTimeReduction = 0f;
 
     public PlayerController player;
@@ -30,22 +29,6 @@ public class PlayerProgressManager : MonoBehaviour
 
     void Start()
     {
-        // Call this here for testing to ensure the UIManager is ready.
-        AddEarnings(1000); 
-    }
-
-    public void AddEarnings(int amount)
-    {
-        earnings += amount;
-
-        // Safety check to prevent errors if the UI isn't set up
-        if (UIManager.Instance != null && UIManager.Instance.earningsText != null)
-        {
-            UIManager.Instance.earningsText.text = $"${earnings}";
-        }
-        else
-        {
-            Debug.LogWarning("Could not update earnings text. UIManager or its earningsText is not assigned.");
-        }
+        
     }
 }

@@ -23,12 +23,30 @@ public class DialogueManager : MonoBehaviour
     private bool isAutoMode = false;
     private Coroutine autoAdvanceCoroutine;
 
+    public static string DialogueToStart; // Add this line
+
+    // --- NEW: Store next scene name ---
+    private string nextSceneName;
+
     void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+
+            // Automatically start dialogue if DialogueToStart is set
+            if (!string.IsNullOrEmpty(DialogueToStart))
+            {
+                StartDialogue(DialogueToStart);
+                DialogueToStart = null; // Reset after use
+            }
+            else
+            {
+                Debug.Log("No dialogue to start. Please set DialogueToStart before starting the game.");
+                // Optionally, you can set a default dialogue to start if needed
+                // Example: StartDialogue("prologue");
+            }
         }
         else
         {
@@ -54,6 +72,22 @@ public class DialogueManager : MonoBehaviour
             string jsonContent = File.ReadAllText(path);
             DialogueLine[] lines = JsonHelper.FromJson<DialogueLine>(jsonContent);
             currentConversation = new List<DialogueLine>(lines);
+
+            // --- NEW: Get nextScene from last line if present ---
+            if (currentConversation.Count > 0)
+            {
+                var lastLine = currentConversation[currentConversation.Count - 1];
+                // Use reflection to get nextScene if it exists
+                var nextSceneField = lastLine.GetType().GetField("nextScene");
+                if (nextSceneField != null)
+                {
+                    var value = nextSceneField.GetValue(lastLine);
+                    if (value != null)
+                    {
+                        nextSceneName = value.ToString();
+                    }
+                }
+            }
         }
         else
         {
@@ -158,9 +192,18 @@ public class DialogueManager : MonoBehaviour
             ToggleAutoMode();
         }
         currentConversation = null;
-        
-        // --- CHANGE ---
+
         // Fire the event with a null value to signal the UI to hide.
         OnDialogueNodeChanged?.Invoke(null);
+
+        // --- NEW: Use DayCycleManager for progression if available ---
+        if (DayCycleManager.Instance != null)
+        {
+            DayCycleManager.Instance.NextStep();
+        }
+        else if (!string.IsNullOrEmpty(nextSceneName))
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
+        }
     }
 }

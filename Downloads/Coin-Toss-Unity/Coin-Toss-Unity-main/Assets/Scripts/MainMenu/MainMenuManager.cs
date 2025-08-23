@@ -7,18 +7,19 @@ public class MainMenuManager : MonoBehaviour
     public void NewGame()
     {
         Debug.Log("Starting a New Game...");
-        
+
         if (DialogueManager.Instance != null)
         {
             // --- THIS IS THE FIX ---
             // The StartDialogue function only needs the name of the conversation file.
             // The .json part is added automatically by the DialogueManager.
-            DialogueManager.Instance.StartDialogue("TestDialogue");
+            DialogueManager.Instance.StartDialogue("prologue");
         }
         else
         {
             Debug.LogError("DialogueManager not found!");
         }
+        SceneManager.LoadScene("DialogueTestScene");
     }
 
     // This function will be called by the "Load Game" button.

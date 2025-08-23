@@ -38,6 +38,8 @@ public class CoinGameManager : MonoBehaviour
         Debug.Log("--- Player Turn Started ---");
         currentState = GameState.PlayerTurn;
         player.enabled = true;
+        // Update UI
+        GameUIManager.Instance?.UpdateTurnStatus(currentState);
     }
 
     public void EndPlayerTurn()
@@ -45,6 +47,8 @@ public class CoinGameManager : MonoBehaviour
         Debug.Log("--- Player Turn Ended ---");
         player.enabled = false;
         currentState = GameState.Waiting;
+        // Update UI
+        GameUIManager.Instance?.UpdateTurnStatus(currentState);
         StartCoroutine(TransitionToEnemyTurn());
     }
 
@@ -60,12 +64,16 @@ public class CoinGameManager : MonoBehaviour
 
         Debug.Log("--- Enemy Turn Started ---");
         currentState = GameState.EnemyTurn;
+        // Update UI
+        GameUIManager.Instance?.UpdateTurnStatus(currentState);
         StartCoroutine(EnemyTurnRoutine());
     }
 
     public void EndEnemyTurn()
     {
         Debug.Log("--- Enemy Turn Ended ---");
+        // Update UI
+        GameUIManager.Instance?.UpdateTurnStatus(GameState.PlayerTurn);
         StartPlayerTurn();
     }
 
@@ -142,5 +150,30 @@ public class CoinGameManager : MonoBehaviour
     private void CleanUpEnemiesList()
     {
         enemies.RemoveAll(item => item == null);
+    }
+
+
+    // Add this method for starting the battle from UI
+    public void StartBattle()
+    {
+        StartPlayerTurn();
+    }
+
+    // --- NEW: Call this when the battle ends to progress the day cycle ---
+    public void EndBattle()
+    {
+        Debug.Log("Battle Ended. Progressing to next step in day cycle.");
+        if (DayCycleManager.Instance != null)
+        {
+            DayCycleManager.Instance.NextStep();
+        }
+    }
+
+    public void RemoveEnemy(EnemyAI enemy)
+    {
+        if (enemies.Contains(enemy))
+        {
+            enemies.Remove(enemy);
+        }
     }
 }

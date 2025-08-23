@@ -38,87 +38,126 @@ public class DinerManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null)
+        try
         {
-            Instance = this;
-            Debug.Log("DinerManager instance created: " + gameObject.name);
+            if (Instance == null)
+            {
+                Instance = this;
+                Debug.Log("DinerManager instance created: " + gameObject.name);
+            }
+            else
+            {
+                Debug.LogWarning("Duplicate DinerManager found. Destroying: " + gameObject.name);
+                Destroy(gameObject);
+            }
         }
-        else
+        catch (System.Exception ex)
         {
-            Debug.LogWarning("Duplicate DinerManager found. Destroying: " + gameObject.name);
-            Destroy(gameObject);
+            Debug.LogError($"[DinerManager] Exception in Awake: {ex.Message}");
         }
     }
 
     // OnEnable is called when the script component is enabled by the GameStateManager
     void OnEnable()
     {
-        StartShift();
+        Debug.Log("[DinerManager] OnEnable called");
+        try
+        {
+            StartShift();
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"[DinerManager] Exception in OnEnable: {ex.Message}");
+        }
     }
 
     // --- NEW --- OnDisable is called when the script is disabled
     void OnDisable()
     {
-        // This is a safe way to stop the spawning process when the day ends.
-        CancelInvoke(nameof(SpawnCustomer));
-        isShiftActive = false;
+        Debug.Log("[DinerManager] OnDisable called");
+        try
+        {
+            // This is a safe way to stop the spawning process when the day ends.
+            CancelInvoke(nameof(SpawnCustomer));
+            isShiftActive = false;
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"[DinerManager] Exception in OnDisable: {ex.Message}");
+        }
     }
 
     void StartShift()
     {
-        if (activeTables.Count == 0)
+        Debug.Log("[DinerManager] StartShift called");
+        try
         {
-            AddNewTable();
+            if (activeTables.Count == 0)
+            {
+                AddNewTable();
+            }
+            
+            customerQueue.Clear();
+            allCustomers.Clear();
+            cookingSlots.Clear();
+            customersSpawnedToday = 0;
+            customersFinishedToday = 0;
+            int currentDay = PlayerProgressManager.Instance != null ? PlayerProgressManager.Instance.day : 1;
+
+            // --- REPLACE SCHEDULE LOGIC WITH HARD-CODED CUSTOMER COUNT ---
+            if (DayCycleManager.Instance != null)
+            {
+                customersToSpawnToday = DayCycleManager.Instance.GetCustomerCountForDay(currentDay);
+            }
+            else
+            {
+                customersToSpawnToday = 5; // fallback value
+            }
+
+            if (GameStateManager.Instance.uiManager != null && PlayerProgressManager.Instance != null)
+            {
+                GameStateManager.Instance.uiManager.log.LogActivity($"Day {PlayerProgressManager.Instance.day} has started!");
+            }
+            
+            // --- THIS IS THE FIX ---
+            // Use InvokeRepeating to call SpawnCustomer every 'spawnInterval' seconds, starting after 2 seconds.
+            InvokeRepeating(nameof(SpawnCustomer), 2f, spawnInterval);
+            isShiftActive = true;
         }
-        
-        customerQueue.Clear();
-        allCustomers.Clear();
-        cookingSlots.Clear();
-        customersSpawnedToday = 0;
-        customersFinishedToday = 0;
-        int currentDay = PlayerProgressManager.Instance != null ? PlayerProgressManager.Instance.day : 1;
-        DailyScheduleEntry todaySchedule = DataLoader.Instance.FullSchedule.Find(d => d.day == currentDay);
-        if (todaySchedule != null)
+        catch (System.Exception ex)
         {
-            customersToSpawnToday = todaySchedule.customerCount;
+            Debug.LogError($"[DinerManager] Exception in StartShift: {ex.Message}");
         }
-        else
-        {
-        // Because the code above is skipped, the game always runs this part
-            Debug.LogWarning("No schedule found for day " + currentDay + ". Defaulting to 5 customers.");
-            customersToSpawnToday = 5; // Fallback value
-        }
-        if (GameStateManager.Instance.uiManager != null && PlayerProgressManager.Instance != null)
-        {
-            GameStateManager.Instance.uiManager.log.LogActivity($"Day {PlayerProgressManager.Instance.day} has started!");
-        }
-        
-        // --- THIS IS THE FIX ---
-        // Use InvokeRepeating to call SpawnCustomer every 'spawnInterval' seconds, starting after 2 seconds.
-        InvokeRepeating(nameof(SpawnCustomer), 2f, spawnInterval);
-        isShiftActive = true;
     }
     
     void SpawnCustomer()
     {
-        // Stop spawning if we've reached the daily limit
-        if (customersSpawnedToday >= customersToSpawnToday)
+        try
         {
-            CancelInvoke(nameof(SpawnCustomer)); // Stop the spawner for the rest of the day
-            return;
-        }
+            Debug.Log($"[DinerManager] SpawnCustomer called. Spawned: {customersSpawnedToday}, Limit: {customersToSpawnToday}");
+            // Stop spawning if we've reached the daily limit
+            if (customersSpawnedToday >= customersToSpawnToday)
+            {
+                CancelInvoke(nameof(SpawnCustomer)); // Stop the spawner for the rest of the day
+                Debug.Log("[DinerManager] Customer spawn limit reached, stopping spawn.");
+                return;
+            }
 
-        GameObject customerObj = Instantiate(customerPrefab, queueSpawnPoint.position, Quaternion.identity);
-        CustomerController customer = customerObj.GetComponent<CustomerController>();
-        
-        allCustomers.Add(customer);
-        customersSpawnedToday++;
-        
-        // The customer adds itself to the queue in its Start() method.
-        
-        if (GameStateManager.Instance.uiManager != null)
+            GameObject customerObj = Instantiate(customerPrefab, queueSpawnPoint.position, Quaternion.identity);
+            CustomerController customer = customerObj.GetComponent<CustomerController>();
+            allCustomers.Add(customer);
+            customersSpawnedToday++;
+
+            // The customer adds itself to the queue in its Start() method.
+
+            if (GameStateManager.Instance.uiManager != null)
+            {
+                GameStateManager.Instance.uiManager.log.LogActivity($"A new customer has arrived ({customersSpawnedToday}/{customersToSpawnToday}).");
+            }
+        }
+        catch (System.Exception ex)
         {
-            GameStateManager.Instance.uiManager.log.LogActivity($"A new customer has arrived ({customersSpawnedToday}/{customersToSpawnToday}).");
+            Debug.LogError($"[DinerManager] Exception in SpawnCustomer: {ex.Message}");
         }
     }
     
@@ -139,33 +178,51 @@ public class DinerManager : MonoBehaviour
     public void OnCustomerFinished()
     {
         customersFinishedToday++;
+        // Example: Add money when customer finishes (adjust amount as needed)
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.AddMoney(10); // Replace 10 with your earning logic
+            if (UIManager.Instance != null && UIManager.Instance.earningsText != null)
+            {
+                UIManager.Instance.earningsText.text = $"${GameManager.Instance.Money}";
+            }
+        }
     }
 
     void Update()
     {
-        if (!isShiftActive) return;
-
-        customerQueue.RemoveAll(c => c == null);
-        allCustomers.RemoveAll(c => c == null);
-
-        foreach (var slot in cookingSlots)
+        try
         {
-            slot.cookTimer -= Time.deltaTime;
-            if (slot.cookTimer <= 0 && !slot.isReady)
+            if (!isShiftActive) return;
+            Debug.Log($"[DinerManager] Update called. Customers spawned: {customersSpawnedToday}, finished: {customersFinishedToday}, to spawn: {customersToSpawnToday}");
+
+            customerQueue.RemoveAll(c => c == null);
+            allCustomers.RemoveAll(c => c == null);
+
+            foreach (var slot in cookingSlots)
             {
-                slot.isReady = true;
-                if(GameStateManager.Instance.uiManager != null)
+                slot.cookTimer -= Time.deltaTime;
+                if (slot.cookTimer <= 0 && !slot.isReady)
                 {
-                    GameStateManager.Instance.uiManager.kitchen.UpdateDisplay(cookingSlots);
-                    GameStateManager.Instance.uiManager.log.LogActivity($"A {slot.itemData.itemName} is ready for pickup!");
+                    slot.isReady = true;
+                    if(GameStateManager.Instance.uiManager != null)
+                    {
+                        GameStateManager.Instance.uiManager.kitchen.UpdateDisplay(cookingSlots);
+                        GameStateManager.Instance.uiManager.log.LogActivity($"A {slot.itemData.itemName} is ready for pickup!");
+                    }
                 }
             }
-        }
 
-        // The day ends when all spawned customers have finished.
-        if (customersFinishedToday >= customersToSpawnToday && customersToSpawnToday > 0)
+            // The day ends when all spawned customers have finished.
+            if (customersFinishedToday >= customersToSpawnToday && customersToSpawnToday > 0)
+            {
+                Debug.Log("[DinerManager] All customers finished, ending shift.");
+                EndShift();
+            }
+        }
+        catch (System.Exception ex)
         {
-            EndShift();
+            Debug.LogError($"[DinerManager] Exception in Update: {ex.Message}");
         }
     }
 
@@ -182,6 +239,12 @@ public class DinerManager : MonoBehaviour
         if (GameStateManager.Instance != null)
         {
             GameStateManager.Instance.TransitionToState(GameStateManager.GameState.EndOfDay);
+        }
+
+        // --- NEW: Progress to next step in day cycle ---
+        if (DayCycleManager.Instance != null)
+        {
+            DayCycleManager.Instance.NextStep();
         }
     }
 
@@ -279,13 +342,14 @@ public class DinerManager : MonoBehaviour
         }
         else if (station.type == Station.StationType.TeaStand)
         {
-            if (PlayerProgressManager.Instance.earnings >= teaCost)
+            if (GameManager.Instance != null && GameManager.Instance.SpendMoney(teaCost))
             {
                 GameItem tea = new GameItem { type = GameItem.Type.Food, linkedItem = teaItemData };
                 if (InventoryManager.Instance.AddItem(tea))
                 {
-                    PlayerProgressManager.Instance.AddEarnings(-teaCost);
                     UIManager.Instance.log.LogActivity("Purchased a Tea for $2.");
+                    if (UIManager.Instance.earningsText != null)
+                        UIManager.Instance.earningsText.text = $"${GameManager.Instance.Money}";
                 }
             }
             else

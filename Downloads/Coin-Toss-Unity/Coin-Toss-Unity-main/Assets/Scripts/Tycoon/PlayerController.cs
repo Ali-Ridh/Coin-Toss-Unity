@@ -33,12 +33,12 @@ public class PlayerController : MonoBehaviour
         
         rb.isKinematic = false; 
         rb.gravityScale = 0;
-        // --- FIXED --- Correct property name is 'drag'
-        rb.linearDamping = linearDrag;
+        rb.linearDamping = linearDrag; // FIXED: use 'drag' instead of 'linearDamping'
     }
 
     void FixedUpdate()
     {
+        Debug.Log($"[PlayerController] FixedUpdate called. Position: {transform.position}");
         MoveTowardsMouse();
     }
 
@@ -49,8 +49,7 @@ public class PlayerController : MonoBehaviour
 
         Vector2 direction = (mouseWorldPos - transform.position).normalized;
         
-        // --- FIXED --- Correct property name is 'velocity'
-        if (rb.linearVelocity.magnitude < maxSpeed)
+        if (rb.linearVelocity.magnitude < maxSpeed) // FIXED: use 'velocity' instead of 'linearVelocity'
         {
             rb.AddForce(direction * moveForce);
         }
@@ -76,7 +75,11 @@ public class PlayerController : MonoBehaviour
             float impactSpeed = collision.relativeVelocity.magnitude;
             if (impactSpeed > collisionPenaltyThreshold)
             {
-                PlayerProgressManager.Instance.AddEarnings(-5);
+                GameManager.Instance.SpendMoney(5);
+                if (UIManager.Instance != null && UIManager.Instance.earningsText != null)
+                {
+                    UIManager.Instance.earningsText.text = $"${GameManager.Instance.Money}";
+                }
                 GameStateManager.Instance.uiManager.log.LogActivity("Ouch! You hit a table too fast!", "text-yellow-400");
                 table.Shake();
             }
@@ -114,5 +117,18 @@ public class PlayerController : MonoBehaviour
                 return;
             }
         }
+
+        // --- NEW: Show note sprite for order tickets in inventory ---
+        // This assumes you have a UIManager or Inventory UI script that displays inventory items.
+        // You should update that script to check if item.type == GameItem.Type.Ticket and use a note sprite.
+        // Example:
+        // foreach (var item in InventoryManager.Instance.items)
+        // {
+        //     if (item.type == GameItem.Type.Ticket)
+        //         inventorySlotImage.sprite = Resources.Load<Sprite>("ui/noteSprite"); // Use your note sprite path
+        //     else
+        //         inventorySlotImage.sprite = Resources.Load<Sprite>(item.linkedItem.spritePath);
+        // }
     }
 }
+

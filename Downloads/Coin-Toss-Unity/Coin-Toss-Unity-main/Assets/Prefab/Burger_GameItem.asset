@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: Burger_GameItem
   m_EditorClassIdentifier: Assembly-CSharp::GameItemData
-  itemName: Burger
-  icon: {fileID: 21300000, guid: 742e68ed61b3a1840b7463a19c36be74, type: 3}
+  itemName: Indomie
+  icon: {fileID: 21300000, guid: aa2e7d08c73a6f5418d2d6c8cd7f42e8, type: 3}

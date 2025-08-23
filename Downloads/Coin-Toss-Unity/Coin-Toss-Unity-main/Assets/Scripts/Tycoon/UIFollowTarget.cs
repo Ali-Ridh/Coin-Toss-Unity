@@ -23,6 +23,7 @@ public class UIFollowTarget : MonoBehaviour
     {
         if (targetToFollow == null)
         {
+                Debug.LogWarning("[UIFollowTarget] Target lost, destroying UI element.");
             // If the target has been destroyed, destroy this UI element as well.
             Destroy(gameObject);
             return;

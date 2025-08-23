@@ -6,8 +6,17 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
+    path: Assets/Scenes/PartA-NoBoss.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
+  - enabled: 1
+    path: Assets/Scenes/MainMenu.unity
+    guid: 2d89fe410bb0ac44bbecee80f3adf6c9
+  - enabled: 1
+    path: Assets/Scenes/DialogueTestScene.unity
+    guid: 3533d901c00597b4785f13bdbe99e609
+  - enabled: 1
+    path: Assets/Scenes/Tycoon-Scene.unity
+    guid: 816ae4a90284fb947a47c930eda90c6d
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0

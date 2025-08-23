@@ -17,6 +17,7 @@ public class DialogueLine
     public string speakerPosition; // "left" or "right"
     public List<Choice> choices;
     public int actionType;
+    public string nextScene; // Add this field for scene transitions
 }
 
 // PortraitPosition class removed

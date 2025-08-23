@@ -27,12 +27,20 @@ public class UIManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            // Pass a direct reference of this UIManager to its helper classes.
             log.Initialize(this);
         }
         else
         {
             Destroy(gameObject);
+        }
+    }
+
+    public void UpdateEarningsDisplay()
+    {
+        if (earningsText != null && GameManager.Instance != null)
+        {
+                Debug.Log($"[UIManager] Updating earnings display: ${GameManager.Instance.Money}");
+            earningsText.text = $"Money: ${GameManager.Instance.Money}";
         }
     }
 
@@ -44,6 +52,7 @@ public class UIManager : MonoBehaviour
     // This function is now private because only the UIManager itself should call it.
     public void CreateLogEntry(string message, string color = "text-gray-300")
     {
+        Debug.Log($"[UIManager] Creating log entry: {message}");
         if (log.container != null && log.logTextPrefab != null)
         {
             GameObject logEntry = Instantiate(log.logTextPrefab, log.container);
@@ -59,21 +68,30 @@ public class UIManager : MonoBehaviour
 public class InventoryUI
 {
     public List<Image> slots;
-    public void UpdateDisplay(List<GameItem> items)
+public void UpdateDisplay(List<GameItem> items)
+{
+    Debug.Log($"[InventoryUI] Updating inventory display. Items count: {items.Count}");
+    for (int i = 0; i < slots.Count; i++)
     {
-        for (int i = 0; i < slots.Count; i++)
+        if (i < items.Count)
         {
-            if (i < items.Count)
+            slots[i].enabled = true;
+            if (items[i].type == GameItem.Type.Ticket)
             {
-                slots[i].enabled = true;
-                slots[i].sprite = items[i].linkedItem.icon;
+                // Use your note sprite here, e.g. Resources.Load<Sprite>("ui/noteSprite")
+                slots[i].sprite = Resources.Load<Sprite>("ui/noteSprite");
             }
             else
             {
-                slots[i].enabled = false;
+                slots[i].sprite = items[i].linkedItem.icon;
             }
         }
+        else
+        {
+            slots[i].enabled = false;
+        }
     }
+}
 }
 
 [System.Serializable]
@@ -83,6 +101,7 @@ public class ActivityLogUI
     public GameObject logTextPrefab;
     
     private UIManager parentManager; // A private variable to hold the direct reference
+    private int maxLogEntries = 7; // Show only the last 7 actions
 
     public void Initialize(UIManager manager)
     {
@@ -91,10 +110,16 @@ public class ActivityLogUI
 
     public void LogActivity(string message, string color = "text-gray-300")
     {
-        // Now it calls the function on its guaranteed parent, not the unreliable singleton.
         if (parentManager != null)
         {
             parentManager.CreateLogEntry(message, color);
+
+            // --- NEW: Remove older messages if count exceeds maxLogEntries ---
+            while (container.childCount > maxLogEntries)
+            {
+                Transform oldest = container.GetChild(container.childCount - 1);
+                GameObject.Destroy(oldest.gameObject);
+            }
         }
     }
 }
